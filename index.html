@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#171717">
@@ -21,9 +21,9 @@
 html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;font-size:13px;-webkit-font-smoothing:antialiased}
 
 /* SETUP */
-#setup{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
+#setup{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;overflow-y:auto}
 #setup.gone{display:none}
-.sc{background:var(--bg2);border:1px solid var(--bd2);border-radius:14px;padding:30px 26px;max-width:480px;width:100%}
+.sc{background:var(--bg2);border:1px solid var(--bd2);border-radius:14px;padding:30px 26px;max-width:500px;width:100%}
 .sc h1{font-size:19px;font-weight:500;display:flex;align-items:center;gap:9px;margin-bottom:6px}
 .logo-box{width:26px;height:26px;background:var(--ac);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .sc>p{color:var(--tx2);font-size:12px;line-height:1.6;margin-bottom:20px}
@@ -33,17 +33,18 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font-
 .fi{width:100%;background:var(--bg3);border:1px solid var(--bd2);border-radius:var(--r);padding:8px 11px;color:var(--tx);font-size:13px;font-family:inherit;outline:none;transition:border .15s}
 .fi:focus{border-color:var(--ac)}
 .fi::placeholder{color:var(--tx3)}
-.hint{font-size:11px;color:var(--tx3);margin-top:4px;line-height:1.5}
+.hint{font-size:11px;color:var(--tx3);margin-top:4px;line-height:1.6}
 .hint a{color:var(--ac);text-decoration:none;cursor:pointer}
-.step-box{margin-top:10px;display:none;background:var(--bg3);border-radius:var(--r);padding:12px 14px}
-.step-box.open{display:block}
-.step{display:flex;gap:8px;margin-bottom:9px;font-size:12px;color:var(--tx2);line-height:1.6}
+.hint code{background:var(--bg4);padding:1px 4px;border-radius:3px;font-size:10px}
+.steps{margin-top:10px;display:none;background:var(--bg3);border-radius:var(--r);padding:14px}
+.steps.open{display:block}
+.step{display:flex;gap:8px;margin-bottom:10px;font-size:12px;color:var(--tx2);line-height:1.6}
 .step:last-child{margin-bottom:0}
-.sn{width:17px;height:17px;border-radius:50%;background:var(--bg4);font-size:10px;color:var(--tx2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.sn{width:18px;height:18px;border-radius:50%;background:var(--bg4);font-size:10px;color:var(--tx2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
 .step strong{color:var(--tx)}
 .btn-go{background:var(--ac);color:#fff;border:none;border-radius:var(--r);padding:9px 20px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:background .15s;margin-top:16px}
 .btn-go:hover{background:var(--ac2)}
-.err{color:#f87171;font-size:12px;margin-top:8px;display:none;line-height:1.5}
+.err-msg{color:#f87171;font-size:12px;margin-top:8px;display:none;line-height:1.5}
 
 /* APP */
 #app{display:none;height:100vh;flex-direction:column}
@@ -59,6 +60,16 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font-
 .hb{width:30px;height:30px;background:none;border:1px solid var(--bd);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--tx2);transition:all .15s;flex-shrink:0}
 .hb:hover{border-color:var(--bd2);color:var(--tx)}
 #sbtog{display:none}
+
+/* STATUS BAR（常時表示） */
+#statusbar{background:var(--bg2);border-bottom:1px solid var(--bd);padding:5px 12px;display:flex;align-items:center;gap:10px;flex-shrink:0;min-height:28px}
+#statusbar.idle{display:none}
+#statusbar.loading{display:flex}
+.spin-sm{width:14px;height:14px;border:1.5px solid var(--bd2);border-top-color:var(--ac);border-radius:50%;animation:sp .7s linear infinite;flex-shrink:0}
+@keyframes sp{to{transform:rotate(360deg)}}
+#status-txt{font-size:11.5px;color:var(--tx2);flex:1}
+#prog-wrap{width:120px;height:3px;background:var(--bd2);border-radius:2px;overflow:hidden;flex-shrink:0}
+#prog{height:100%;background:var(--ac);width:0%;transition:width .25s}
 
 /* BODY */
 #body{display:flex;flex:1;overflow:hidden}
@@ -89,17 +100,12 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font-
 .vb{width:26px;height:26px;background:none;border:1px solid var(--bd);border-radius:4px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--tx3);transition:all .15s}
 .vb:hover,.vb.active{border-color:var(--bd2);color:var(--tx)}
 .vb.active{background:var(--bg3)}
-#tbar{display:flex;gap:4px;overflow-x:auto;padding:6px 11px;border-bottom:1px solid var(--bd);scrollbar-width:none;flex-shrink:0;-webkit-overflow-scrolling:touch}
+#tbar{display:flex;gap:4px;overflow-x:auto;padding:6px 11px;border-bottom:1px solid var(--bd);scrollbar-width:none;flex-shrink:0}
 #tbar::-webkit-scrollbar{display:none}
 #tbar:empty{display:none;padding:0;border:none}
 .tc{background:var(--tag-bg);color:var(--tag);font-size:11px;padding:2px 8px;border-radius:11px;cursor:pointer;white-space:nowrap;border:1px solid transparent;transition:all .1s;user-select:none;flex-shrink:0}
 .tc:hover{border-color:var(--tag)}
 .tc.active{border-color:var(--tag);background:#1c3258}
-
-/* PROGRESS BAR */
-#prog-wrap{height:2px;background:var(--bd);flex-shrink:0;overflow:hidden}
-#prog{height:100%;background:var(--ac);width:0%;transition:width .3s;display:none}
-#prog.on{display:block}
 
 /* GRID */
 #gw{flex:1;overflow-y:auto;overflow-x:hidden;padding:9px;scrollbar-width:thin;scrollbar-color:var(--bg4) transparent;-webkit-overflow-scrolling:touch}
@@ -127,11 +133,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font-
 #grid.list .cm{white-space:nowrap;flex-shrink:0}
 #grid.list .ctags{display:none}
 
-/* STATE */
-#loading{display:none;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:10px;color:var(--tx3)}
-#loading.on{display:flex}
-.spin{width:28px;height:28px;border:2px solid var(--bg4);border-top-color:var(--ac);border-radius:50%;animation:sp .7s linear infinite}
-@keyframes sp{to{transform:rotate(360deg)}}
+/* EMPTY */
 #empty{display:none;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:7px;color:var(--tx3);font-size:13px}
 #empty.on{display:flex}
 
@@ -168,24 +170,26 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font-
       <span class="logo-box"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2L10.5 6.5H13.5L11.5 9.5L12.5 13.5L8 11.5L3.5 13.5L4.5 9.5L2.5 6.5H5.5Z"/></svg></span>
       Eagle Viewer
     </h1>
-    <p>Google Drive の Eagle ライブラリを iPhone・iPad・PC で閲覧できます。</p>
+    <p>Google Apps Script をバックエンドにして Eagle ライブラリを閲覧できます。</p>
+
     <div class="fl">
-      <div class="fl-label"><span>Drive フォルダリンク</span><b>必須</b></div>
-      <input class="fi" id="inp-f" type="text" placeholder="https://drive.google.com/drive/folders/…" autocomplete="off" spellcheck="false">
-    </div>
-    <div class="fl">
-      <div class="fl-label"><span>Google API キー</span><b>必須</b></div>
-      <input class="fi" id="inp-k" type="text" placeholder="AIzaSy…" autocomplete="off" spellcheck="false">
-      <div class="hint"><a onclick="toggleSteps()">APIキーの取得手順 ▾</a></div>
-      <div class="step-box" id="stepbox">
-        <div class="step"><div class="sn">1</div><div><strong>console.cloud.google.com</strong> にログイン → 新規プロジェクト作成</div></div>
-        <div class="step"><div class="sn">2</div><div>「APIとサービス」→「ライブラリ」→ <strong>Google Drive API</strong> を有効化</div></div>
-        <div class="step"><div class="sn">3</div><div>「認証情報」→「認証情報を作成」→「APIキー」→ コピー</div></div>
-        <div class="step"><div class="sn">4</div><div>キー編集 → HTTPリファラー制限 → <code style="background:var(--bg);padding:1px 4px;border-radius:3px">https://あなたのGitHub名.github.io/*</code> を追加（推奨）</div></div>
+      <div class="fl-label"><span>GAS ウェブアプリ URL</span><b>必須</b></div>
+      <input class="fi" id="inp-url" type="text" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off" spellcheck="false">
+      <div class="hint">
+        <a onclick="toggleSteps()">▶ GAS の設置手順（初回のみ・5分）</a>
+        <div class="steps" id="stepbox">
+          <div class="step"><div class="sn">1</div><div><strong>script.google.com</strong> を開いて「新しいプロジェクト」を作成</div></div>
+          <div class="step"><div class="sn">2</div><div>エディタに <code>gas_backend.js</code> の内容を貼り付ける</div></div>
+          <div class="step"><div class="sn">3</div><div>1行目の <code>LIBRARY_ROOT_ID</code> にライブラリのフォルダID（<code>1h0kV2mvnZVyMwZl3myGGiTItnoiUF0UM</code> の一つ上の親）を貼る</div></div>
+          <div class="step"><div class="sn">4</div><div>左メニュー「サービス」→「Drive API」を追加（v3）</div></div>
+          <div class="step"><div class="sn">5</div><div>「デプロイ」→「新しいデプロイ」→ 種類：ウェブアプリ → 実行者：自分 → アクセス：<strong>全員（匿名含む）</strong> → デプロイ</div></div>
+          <div class="step"><div class="sn">6</div><div>表示された <strong>ウェブアプリのURL</strong> をコピーしてここに貼る</div></div>
+        </div>
       </div>
     </div>
+
     <button class="btn-go" onclick="startViewer()">ライブラリを開く</button>
-    <div class="err" id="serr"></div>
+    <div class="err-msg" id="serr"></div>
   </div>
 </div>
 
@@ -200,9 +204,16 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font-
       <svg width="12" height="12" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="5.5" cy="5.5" r="4"/><line x1="8.5" y1="8.5" x2="12" y2="12"/></svg>
       <input id="si" type="search" placeholder="名前・タグで検索…" oninput="onSearch(this.value)">
     </div>
-    <button class="hb" onclick="resetViewer()" title="ライブラリ変更">
+    <button class="hb" onclick="resetViewer()" title="設定変更">
       <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 6.5A5.5 5.5 0 1 1 2.6 10"/><polyline points="1,10 1,6.5 4.5,6.5"/></svg>
     </button>
+  </div>
+
+  <!-- 常時表示ステータスバー -->
+  <div id="statusbar" class="idle">
+    <div class="spin-sm"></div>
+    <span id="status-txt">読み込み中…</span>
+    <div id="prog-wrap"><div id="prog"></div></div>
   </div>
 
   <div id="body">
@@ -213,7 +224,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font-
         <div class="si active" id="all-item" onclick="selFolder(null)">
           <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="2" width="11" height="9.5" rx="1.5"/><line x1="1" y1="5.5" x2="12" y2="5.5"/></svg>
           <span class="sin">すべて</span>
-          <span class="sic" id="total-ct">0</span>
+          <span class="sic" id="total-ct">-</span>
         </div>
       </div>
       <div class="ss">
@@ -236,9 +247,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font-
           </button>
         </div>
       </div>
-      <div id="prog-wrap"><div id="prog"></div></div>
       <div id="tbar"></div>
-      <div id="loading"><div class="spin"></div><span id="ltxt">読み込み中…</span></div>
       <div id="empty"><svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity=".35"><rect x="3" y="8" width="30" height="22" rx="3"/><line x1="3" y1="14" x2="33" y2="14"/><circle cx="18" cy="23" r="4"/></svg>アイテムが見つかりません</div>
       <div id="gw"><div id="grid"></div></div>
     </div>
@@ -259,299 +268,109 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font-
 </div>
 
 <script>
-// ════════════════════════════════════════
-//  定数・状態
-// ════════════════════════════════════════
-const DAPI = 'https://www.googleapis.com/drive/v3';
 const VID_EXT = new Set(['mp4','mov','webm','m4v','avi','mkv']);
-const IMG_EXT = new Set(['jpg','jpeg','png','gif','webp','svg','bmp','tiff','tif','avif','heic']);
+const S = { gasUrl:null, items:[], folders:[], active:null, q:'', sort:'name', view:'grid', tag:null };
 
-const S = {
-  apiKey: null, folderId: null,
-  items: [], folders: [],
-  active: null, q: '', sort: 'name', view: 'grid', tag: null,
-};
-
-// ════════════════════════════════════════
-//  Drive API ヘルパー
-// ════════════════════════════════════════
-function xid(url) {
-  const u = url.trim();
-  const m = u.match(/\/folders\/([a-zA-Z0-9_-]+)/);
-  if (m) return m[1];
-  if (/^[a-zA-Z0-9_-]{20,}$/.test(u)) return u;
-  return null;
+// ── ステータスバー ──────────────────────────────
+function setStatus(msg, pct) {
+  const bar = document.getElementById('statusbar');
+  if (!msg) { bar.className = 'idle'; return; }
+  bar.className = 'loading';
+  document.getElementById('status-txt').textContent = msg;
+  if (pct !== undefined) document.getElementById('prog').style.width = pct + '%';
 }
 
-// ページネーション対応リスト取得（1000件超も全件取得）
-async function dListAll(parentId, mimeFilter) {
-  let q = `'${parentId}' in parents and trashed=false`;
-  if (mimeFilter) q += ` and mimeType='${mimeFilter}'`;
-  let all = [], pageToken = null;
-  do {
-    const p = new URLSearchParams({
-      q, pageSize: '1000',
-      fields: 'nextPageToken,files(id,name,mimeType,modifiedTime)',
-      key: S.apiKey,
-    });
-    if (pageToken) p.set('pageToken', pageToken);
-    const r = await fetch(`${DAPI}/files?${p}`);
-    if (!r.ok) { const t = await r.text(); throw new Error(`Drive ${r.status}: ${t.slice(0,150)}`); }
-    const d = await r.json();
-    all = all.concat(d.files || []);
-    pageToken = d.nextPageToken || null;
-  } while (pageToken);
-  return all;
-}
-
-// metadata.json を読む（exportLinks 経由でCORSを回避）
-async function dReadJson(fileId) {
-  // Drive API の files.get で webContentLink を取得してからDL
-  // → alt=media + key で直接取得が一番シンプルだが、CORSが問題
-  // → export=download URL を使う
-  const url = `https://drive.google.com/uc?export=download&id=${fileId}&confirm=1`;
+// ── GAS 呼び出し ────────────────────────────────
+async function gasCall(params) {
+  const url = S.gasUrl + '?' + new URLSearchParams(params);
   const r = await fetch(url);
-  if (!r.ok) throw new Error(`fetch ${r.status}`);
-  return r.json();
+  if (!r.ok) throw new Error(`GAS ${r.status}`);
+  const d = await r.json();
+  if (d.error) throw new Error(d.error);
+  return d;
 }
 
-// サムネイルURL（Drive 公開thumbnail）
-function tUrl(fileId, sz = 300) {
-  return `https://drive.google.com/thumbnail?id=${fileId}&sz=w${sz}`;
-}
+// ── ライブラリ読み込み ───────────────────────────
+async function loadLibrary() {
+  setStatus('メタデータを読み込み中…', 5);
+  const data = await gasCall({ action: 'load' });
 
-// ════════════════════════════════════════
-//  ライブラリ読み込み（完全刷新版）
-//
-//  戦略：
-//  1. metadata.json を export=download で取得（CORSなし）
-//  2. images/ の .info フォルダ一覧を1回のAPIで全件取得（ページネーション対応）
-//  3. 各 .info フォルダの中身をバッチ並列で取得
-//  4. グリッドは段階的に更新（最初の1バッチで即表示）
-// ════════════════════════════════════════
-async function loadLibrary(rootId) {
-  setL('フォルダ構造を確認中…');
+  S.folders = parseFolders(data.folders || []);
+  S.items   = data.items || [];
+  const total = data.total || S.items.length;
 
-  // ① ルート直下を取得
-  const rootFiles = await dListAll(rootId);
-  let libRoot = rootFiles;
-
-  // .library フォルダがあれば中に入る
-  const libDir = rootFiles.find(f =>
-    f.mimeType.includes('folder') && f.name.endsWith('.library')
-  );
-  if (libDir) libRoot = await dListAll(libDir.id);
-
-  const metaFile  = libRoot.find(f => f.name === 'metadata.json' && !f.mimeType.includes('folder'));
-  const imagesDir = libRoot.find(f => f.mimeType.includes('folder') && f.name.toLowerCase() === 'images');
-
-  if (!metaFile && !imagesDir) {
-    const names = libRoot.map(f => (f.mimeType.includes('folder') ? '📁 ' : '📄 ') + f.name).join('<br>');
-    throw new Error(`Eagle ライブラリが見つかりません。<br>内容(${libRoot.length}件):<br>${names}`);
-  }
-
-  // ② metadata.json を export=download で取得（CORSなし）
-  setL('メタデータを読み込み中…');
-  let libMeta = {};
-  if (metaFile) {
-    try { libMeta = await dReadJson(metaFile.id); }
-    catch (e) { console.warn('metadata.json取得失敗:', e); }
-  }
-
-  const folders = parseFolders(libMeta.folders || []);
-
-  // ③ images/ 以下の .info フォルダを全件取得（ページネーション対応）
-  if (!imagesDir) {
-    throw new Error('images フォルダが見つかりません。');
-  }
-
-  setL('アイテム一覧を取得中…');
-  const infoFolders = await dListAll(imagesDir.id, 'application/vnd.google-apps.folder');
-  const totalCount = infoFolders.length;
-
-  if (totalCount === 0) {
-    throw new Error('images フォルダ内に .info フォルダが見つかりません。');
-  }
-
-  setL(`${totalCount} 件のアイテムを読み込み中…`);
-  setProgress(0);
-
-  // ④ バッチ並列取得（並列数30、即時グリッド描画）
-  const BATCH = 30;
-  const items = new Array(totalCount);  // 順序を保持
-  let done = 0;
-
-  // 最初のバッチを待ってから表示開始
-  const firstBatch = infoFolders.slice(0, BATCH);
-  const firstResults = await Promise.allSettled(firstBatch.map(loadInfoFolder));
-  firstResults.forEach((r, i) => {
-    items[i] = r.status === 'fulfilled' ? r.value : null;
-  });
-  done = BATCH;
-
-  // 即グリッド表示
-  S.items = items.filter(Boolean);
-  S.folders = folders;
   countFolders(S.folders, S.items);
-  document.getElementById('total-ct').textContent = totalCount;
-  renderSB(); renderTagBar();
-  document.getElementById('loading').classList.remove('on');
-  document.getElementById('gw').style.display = '';
-  renderGrid();
-  setProgress(done / totalCount * 100);
-
-  // 残りをバックグラウンドで取得
-  for (let i = BATCH; i < totalCount; i += BATCH) {
-    const batch = infoFolders.slice(i, i + BATCH);
-    const results = await Promise.allSettled(batch.map(loadInfoFolder));
-    results.forEach((r, j) => {
-      items[i + j] = r.status === 'fulfilled' ? r.value : null;
-    });
-    done = Math.min(i + BATCH, totalCount);
-    S.items = items.filter(Boolean);
-    setProgress(done / totalCount * 100);
-    setL(`読み込み中… ${done} / ${totalCount}`);
-    renderGrid();
-    // UIをブロックしないように少し待つ
-    await new Promise(res => setTimeout(res, 0));
-  }
-
-  setProgress(100);
-  setTimeout(() => { setProgress(0); document.getElementById('prog').classList.remove('on'); }, 500);
-  setL('');
-  countFolders(S.folders, S.items);
+  document.getElementById('total-ct').textContent = total;
   renderSB(); renderTagBar(); renderGrid();
-
-  document.getElementById('total-ct').textContent = S.items.length;
-}
-
-async function loadInfoFolder(folder) {
-  const files = await dListAll(folder.id);
-
-  // thumbnail ファイル（拡張子問わず thumbnail という名前のもの）
-  const thumbFile = files.find(f =>
-    f.name.startsWith('thumbnail.') && !f.mimeType.includes('folder')
-  );
-  // 元ファイル（thumbnail と metadata.json 以外）
-  const srcFile = files.find(f => {
-    const ext = (f.name.split('.').pop() || '').toLowerCase();
-    return (IMG_EXT.has(ext) || VID_EXT.has(ext)) &&
-           !f.name.startsWith('thumbnail') && f.name !== 'metadata.json';
-  });
-  // metadata.json
-  const metaFile = files.find(f => f.name === 'metadata.json');
-
-  let meta = {};
-  if (metaFile) {
-    try { meta = await dReadJson(metaFile.id); } catch (e) {}
-  }
-
-  const ext = (meta.ext || (srcFile ? srcFile.name.split('.').pop() : '') || '').toLowerCase();
-
-  return {
-    id:         meta.id         || folder.name.replace('.info', ''),
-    name:       meta.name       || folder.name.replace('.info', ''),
-    tags:       meta.tags       || [],
-    folders:    meta.folders    || [],
-    annotation: meta.annotation || '',
-    mtime:      meta.mtime      || (folder.modifiedTime ? new Date(folder.modifiedTime).getTime() : 0),
-    ext,
-    width:      meta.width      || 0,
-    height:     meta.height     || 0,
-    thumbId:    thumbFile ? thumbFile.id : null,
-    srcId:      srcFile   ? srcFile.id   : null,
-  };
+  setStatus(null);
 }
 
 function parseFolders(arr) {
-  return arr.map(f => ({
-    id: f.id, name: f.name,
-    children: parseFolders(f.children || []),
-    imageCount: 0,
-  }));
+  return arr.map(f => ({ id:f.id, name:f.name, children:parseFolders(f.children||[]), imageCount:0 }));
 }
-
 function countFolders(folders, items) {
   folders.forEach(f => {
-    f.imageCount = items.filter(it => it.folders.includes(f.id)).length;
+    f.imageCount = items.filter(it => (it.folders||[]).includes(f.id)).length;
     if (f.children.length) countFolders(f.children, items);
   });
 }
 
-// ════════════════════════════════════════
-//  セットアップ / 初期化
-// ════════════════════════════════════════
-function toggleSteps() { document.getElementById('stepbox').classList.toggle('open'); }
+// ── サムネイルURL ───────────────────────────────
+function tUrl(id, sz) { return `https://drive.google.com/thumbnail?id=${id}&sz=w${sz||300}`; }
 
-function showErr(msg) {
-  const e = document.getElementById('serr');
-  e.innerHTML = msg; e.style.display = 'block';
-}
+// ── セットアップ ────────────────────────────────
+function toggleSteps() { document.getElementById('stepbox').classList.toggle('open'); }
+function showErr(msg)  { const e=document.getElementById('serr'); e.innerHTML=msg; e.style.display='block'; }
 
 function startViewer() {
-  const rawF = document.getElementById('inp-f').value.trim();
-  const rawK = document.getElementById('inp-k').value.trim();
-  const id = xid(rawF);
-  if (!id)  { showErr('有効な Google Drive フォルダのリンクを入力してください'); return; }
-  if (!rawK || rawK.length < 20) { showErr('API キーを入力してください'); return; }
-  localStorage.setItem('ev_f', id);
-  localStorage.setItem('ev_k', rawK);
-  init(id, rawK);
+  const url = document.getElementById('inp-url').value.trim();
+  if (!url.startsWith('https://script.google.com')) {
+    showErr('GAS ウェブアプリの URL を入力してください（https://script.google.com/macros/s/…/exec）');
+    return;
+  }
+  localStorage.setItem('ev_gas', url);
+  init(url);
 }
 
 function resetViewer() {
-  localStorage.removeItem('ev_f'); localStorage.removeItem('ev_k');
-  document.getElementById('inp-f').value = '';
-  document.getElementById('inp-k').value = '';
+  localStorage.removeItem('ev_gas');
+  document.getElementById('inp-url').value = '';
   document.getElementById('app').classList.remove('on');
   document.getElementById('setup').classList.remove('gone');
   S.items = []; S.folders = [];
 }
 
-async function init(folderId, apiKey) {
-  S.folderId = folderId; S.apiKey = apiKey;
+async function init(gasUrl) {
+  S.gasUrl = gasUrl;
   document.getElementById('setup').classList.add('gone');
   document.getElementById('app').classList.add('on');
-  document.getElementById('loading').classList.add('on');
-  document.getElementById('gw').style.display = 'none';
-  document.getElementById('prog').classList.add('on');
-
+  setStatus('接続中…', 0);
+  document.getElementById('gw').style.display = '';
   try {
-    await loadLibrary(folderId);
-  } catch (e) {
+    await loadLibrary();
+  } catch(e) {
     console.error(e);
-    document.getElementById('loading').classList.remove('on');
-    document.getElementById('gw').style.display = '';
+    setStatus('エラー: ' + e.message, 0);
     document.getElementById('grid').innerHTML =
       `<div style="grid-column:1/-1;padding:16px 4px;color:#f87171;font-size:12.5px;line-height:1.9">
-        <strong>読み込みエラー</strong><br>${e.message}
+        <strong>読み込みエラー</strong><br>${esc(e.message)}<br><br>
+        <span style="color:var(--tx3)">・GAS の URL が正しいか確認<br>・デプロイ時に「アクセス：全員」に設定されているか確認<br>・GAS エディタで「Drive API サービス」が追加されているか確認</span>
       </div>`;
   }
 }
 
-function setL(t) { document.getElementById('ltxt').textContent = t; }
-function setProgress(pct) {
-  const el = document.getElementById('prog');
-  el.style.width = pct + '%';
-}
-
-// ════════════════════════════════════════
-//  サイドバー
-// ════════════════════════════════════════
+// ── サイドバー ──────────────────────────────────
 function renderSB() {
   const list = document.getElementById('flist');
   list.innerHTML = '';
   S.folders.forEach(f => renderFI(f, list));
 }
-
 function renderFI(f, container) {
   const hasC = f.children && f.children.length > 0;
   const d = document.createElement('div');
   d.innerHTML = `
     <div class="si" data-id="${f.id}" onclick="hFI(event,'${f.id}',${hasC})">
-      ${hasC
-        ? `<svg class="sa" width="9" height="9" viewBox="0 0 9 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polyline points="2,1.5 6.5,4.5 2,7.5"/></svg>`
-        : '<span style="width:9px;flex-shrink:0"></span>'}
+      ${hasC ? `<svg class="sa" width="9" height="9" viewBox="0 0 9 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polyline points="2,1.5 6.5,4.5 2,7.5"/></svg>` : '<span style="width:9px;flex-shrink:0"></span>'}
       <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4.5V11a1 1 0 001 1h9a1 1 0 001-1V4.5a1 1 0 00-1-1H6.5L5 2H2a1 1 0 00-1 1v.5z"/></svg>
       <span class="sin">${esc(f.name)}</span>
       <span class="sic">${f.imageCount}</span>
@@ -560,171 +379,115 @@ function renderFI(f, container) {
   container.appendChild(d);
   if (hasC) f.children.forEach(c => renderFI(c, d.querySelector('.fc')));
 }
-
 function hFI(e, id, hasC) {
   e.stopPropagation();
   const el = e.currentTarget;
-  if (hasC) {
-    const ch = el.parentElement.querySelector('.fc');
-    el.classList.toggle('open');
-    ch.style.display = el.classList.contains('open') ? 'block' : 'none';
-  }
+  if (hasC) { const ch=el.parentElement.querySelector('.fc'); el.classList.toggle('open'); ch.style.display=el.classList.contains('open')?'block':'none'; }
   selFolder(id); closeSB();
 }
-
 function selFolder(id) {
   S.active = id; S.tag = null;
-  document.querySelectorAll('.si').forEach(el =>
-    el.classList.toggle('active', el.dataset.id === (id || '__all'))
-  );
+  document.querySelectorAll('.si').forEach(el => el.classList.toggle('active', el.dataset.id===(id||'__all')));
   document.getElementById('all-item').classList.toggle('active', !id);
   renderTagBar(); renderGrid();
 }
-
 function openSB()  { document.getElementById('sb').classList.add('open');    document.getElementById('sbo').classList.add('on'); }
 function closeSB() { document.getElementById('sb').classList.remove('open'); document.getElementById('sbo').classList.remove('on'); }
 
-// ════════════════════════════════════════
-//  タグバー
-// ════════════════════════════════════════
+// ── タグバー ────────────────────────────────────
 function renderTagBar() {
   const bar = document.getElementById('tbar');
-  const tags = [...new Set(getItems(false).flatMap(it => it.tags))].sort();
+  const tags = [...new Set(getItems(false).flatMap(it => it.tags||[]))].sort();
   bar.innerHTML = '';
   tags.forEach(t => {
     const c = document.createElement('div');
-    c.className = 'tc' + (S.tag === t ? ' active' : '');
+    c.className = 'tc' + (S.tag===t ? ' active' : '');
     c.textContent = t;
-    c.onclick = () => { S.tag = S.tag === t ? null : t; renderTagBar(); renderGrid(); };
+    c.onclick = () => { S.tag = S.tag===t ? null : t; renderTagBar(); renderGrid(); };
     bar.appendChild(c);
   });
 }
 
-// ════════════════════════════════════════
-//  グリッド
-// ════════════════════════════════════════
-function getItems(wTag = true) {
+// ── グリッド ────────────────────────────────────
+function getItems(wTag=true) {
   let it = S.items;
-  if (S.active) it = it.filter(x => x.folders.includes(S.active));
-  if (S.q) {
-    const q = S.q.toLowerCase();
-    it = it.filter(x =>
-      x.name.toLowerCase().includes(q) ||
-      x.tags.some(t => t.toLowerCase().includes(q)) ||
-      x.annotation.toLowerCase().includes(q)
-    );
-  }
-  if (wTag && S.tag) it = it.filter(x => x.tags.includes(S.tag));
+  if (S.active) it = it.filter(x => (x.folders||[]).includes(S.active));
+  if (S.q) { const q=S.q.toLowerCase(); it=it.filter(x => x.name.toLowerCase().includes(q) || (x.tags||[]).some(t=>t.toLowerCase().includes(q))); }
+  if (wTag && S.tag) it = it.filter(x => (x.tags||[]).includes(S.tag));
   return it;
 }
-
 function sorted(items) {
-  if (S.sort === 'date') return [...items].sort((a, b) => b.mtime - a.mtime);
-  return [...items].sort((a, b) => a.name.localeCompare(b.name, 'ja'));
+  if (S.sort==='date') return [...items].sort((a,b)=>b.mtime-a.mtime);
+  return [...items].sort((a,b)=>a.name.localeCompare(b.name,'ja'));
 }
-
 function renderGrid() {
   const items = sorted(getItems());
-  const g   = document.getElementById('grid');
-  const em  = document.getElementById('empty');
+  const g = document.getElementById('grid');
+  const em = document.getElementById('empty');
   document.getElementById('ic').textContent = `${items.length} アイテム`;
-
-  if (!items.length) { g.innerHTML = ''; em.classList.add('on'); return; }
+  if (!items.length) { g.innerHTML=''; em.classList.add('on'); return; }
   em.classList.remove('on');
-  g.className = S.view === 'list' ? 'list' : '';
-
+  g.className = S.view==='list' ? 'list' : '';
   const frag = document.createDocumentFragment();
   items.forEach(item => {
-    const isVid = VID_EXT.has(item.ext);
-    const card  = document.createElement('div');
+    const isVid = VID_EXT.has(item.ext||'');
+    const card = document.createElement('div');
     card.className = 'card';
     card.onclick = () => openLB(item);
-
-    const thumbSrc = item.thumbId ? tUrl(item.thumbId, 300) : '';
-    const tags = item.tags.slice(0, 3).map(t => `<span class="ctag">${esc(t)}</span>`).join('');
-    const meta = [
-      item.ext ? item.ext.toUpperCase() : '',
-      item.width && item.height ? `${item.width}×${item.height}` : '',
-    ].filter(Boolean).join('  ');
-    const date = item.mtime
-      ? new Date(item.mtime).toLocaleDateString('ja-JP', { year: 'numeric', month: 'short', day: 'numeric' })
-      : '';
-
-    // サムネイル部分
+    const tSrc = item.thumbId ? tUrl(item.thumbId, 300) : '';
+    const tags = (item.tags||[]).slice(0,3).map(t=>`<span class="ctag">${esc(t)}</span>`).join('');
+    const meta = [item.ext?item.ext.toUpperCase():'', item.width&&item.height?`${item.width}×${item.height}`:''].filter(Boolean).join('  ');
+    const date = item.mtime ? new Date(item.mtime).toLocaleDateString('ja-JP',{year:'numeric',month:'short',day:'numeric'}) : '';
     const thumbHTML = isVid
       ? `<div class="thumb-vid"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="13" fill="rgba(255,255,255,.12)"/><polygon points="11,9 21,14 11,19" fill="rgba(255,255,255,.9)"/></svg></div>`
-      : `<img class="thumb" src="${thumbSrc}" alt="${esc(item.name)}" loading="lazy" onerror="this.style.background='var(--bg4)'">`;
-
-    if (S.view === 'list') {
+      : `<img class="thumb" src="${tSrc}" alt="${esc(item.name)}" loading="lazy" onerror="this.style.background='var(--bg4)'">`;
+    if (S.view==='list') {
       card.innerHTML = `${thumbHTML}<div class="cb"><div class="cn">${esc(item.name)}</div><div class="cm">${esc(meta)}</div></div><div class="cm" style="flex-shrink:0">${date}</div>`;
     } else {
-      card.innerHTML = `${thumbHTML}<div class="cb"><div class="cn">${esc(item.name)}</div><div class="cm">${esc(meta)}</div>${tags ? `<div class="ctags">${tags}</div>` : ''}</div>`;
+      card.innerHTML = `${thumbHTML}<div class="cb"><div class="cn">${esc(item.name)}</div><div class="cm">${esc(meta)}</div>${tags?`<div class="ctags">${tags}</div>`:''}</div>`;
     }
     frag.appendChild(card);
   });
-  g.innerHTML = '';
-  g.appendChild(frag);
+  g.innerHTML=''; g.appendChild(frag);
 }
 
-// ════════════════════════════════════════
-//  ライトボックス
-// ════════════════════════════════════════
+// ── ライトボックス ──────────────────────────────
 function openLB(item) {
   const img = document.getElementById('lb-img');
   const vid = document.getElementById('lb-vid');
-  const isVid = VID_EXT.has(item.ext);
-
+  const isVid = VID_EXT.has(item.ext||'');
   document.getElementById('lb-name').textContent = item.name;
-  document.getElementById('lb-tags').innerHTML = item.tags.map(t => `<span class="ctag">${esc(t)}</span>`).join('');
-
+  document.getElementById('lb-tags').innerHTML = (item.tags||[]).map(t=>`<span class="ctag">${esc(t)}</span>`).join('');
   if (isVid && item.srcId) {
-    img.style.display = 'none';
-    vid.classList.add('on');
+    img.style.display='none'; vid.classList.add('on');
     vid.src = `https://drive.google.com/uc?export=download&id=${item.srcId}&confirm=1`;
-    vid.play().catch(() => {});
+    vid.play().catch(()=>{});
   } else {
-    vid.classList.remove('on');
-    vid.pause(); vid.src = '';
-    img.style.display = 'block';
-    // 高解像度サムネイルを表示
+    vid.classList.remove('on'); vid.pause(); vid.src='';
+    img.style.display='block';
     img.src = item.thumbId ? tUrl(item.thumbId, 1600) : '';
   }
   document.getElementById('lb').classList.add('on');
 }
-
-function lbBgClick(e) {
-  if (e.target === document.getElementById('lb')) closeLB();
-}
+function lbBgClick(e) { if(e.target===document.getElementById('lb')) closeLB(); }
 function closeLB() {
-  const vid = document.getElementById('lb-vid');
-  vid.pause(); vid.src = '';
-  document.getElementById('lb-img').src = '';
+  const v=document.getElementById('lb-vid'); v.pause(); v.src='';
+  document.getElementById('lb-img').src='';
   document.getElementById('lb').classList.remove('on');
 }
 
-// ════════════════════════════════════════
-//  コントロール
-// ════════════════════════════════════════
-function onSearch(v) { S.q = v; renderGrid(); }
-function setSort(m)  { S.sort = m; document.getElementById('sn-btn').classList.toggle('active', m==='name'); document.getElementById('sd-btn').classList.toggle('active', m==='date'); renderGrid(); }
-function setView(m)  { S.view = m; document.getElementById('vg').classList.toggle('active', m==='grid'); document.getElementById('vl').classList.toggle('active', m==='list'); renderGrid(); }
+// ── コントロール ────────────────────────────────
+function onSearch(v) { S.q=v; renderGrid(); }
+function setSort(m)  { S.sort=m; document.getElementById('sn-btn').classList.toggle('active',m==='name'); document.getElementById('sd-btn').classList.toggle('active',m==='date'); renderGrid(); }
+function setView(m)  { S.view=m; document.getElementById('vg').classList.toggle('active',m==='grid'); document.getElementById('vl').classList.toggle('active',m==='list'); renderGrid(); }
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') {
-    if (document.getElementById('lb').classList.contains('on')) closeLB();
-    else closeSB();
-  }
+  if (e.key==='Escape') { if(document.getElementById('lb').classList.contains('on')) closeLB(); else closeSB(); }
 });
 
 window.addEventListener('load', () => {
-  const id  = localStorage.getItem('ev_f');
-  const key = localStorage.getItem('ev_k');
-  if (id && key) {
-    document.getElementById('inp-f').value = `https://drive.google.com/drive/folders/${id}`;
-    document.getElementById('inp-k').value = key;
-    init(id, key);
-  }
+  const url = localStorage.getItem('ev_gas');
+  if (url) { document.getElementById('inp-url').value=url; init(url); }
 });
 </script>
 </body>
