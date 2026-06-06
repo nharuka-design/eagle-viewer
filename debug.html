@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eagle Viewer — Debug</title>
+<style>
+body{font-family:monospace;background:#111;color:#ccc;padding:20px;font-size:13px}
+h2{color:#4f9cf9;margin:16px 0 8px}
+input{width:100%;background:#222;border:1px solid #444;border-radius:6px;padding:8px 10px;color:#eee;font-size:13px;margin-bottom:6px;box-sizing:border-box}
+button{background:#4f9cf9;color:#fff;border:none;border-radius:6px;padding:8px 18px;font-size:13px;cursor:pointer;margin-right:8px;margin-bottom:8px}
+button:hover{background:#3a7fd4}
+pre{background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:14px;overflow:auto;white-space:pre-wrap;word-break:break-all;max-height:400px;font-size:11.5px;line-height:1.6}
+.ok{color:#4ade80}.er{color:#f87171}.warn{color:#facc15}
+.row{display:flex;gap:8px;margin-bottom:6px}
+.row input{flex:1}
+</style>
+</head>
+<body>
+<h2>🔍 Eagle Viewer — ライブラリ構造デバッグツール</h2>
+<p style="color:#888;font-size:12px;margin-bottom:16px">このツールでライブラリの構造を確認し、最適な読み込み方法を特定します</p>
+
+<div class="row">
+  <input id="key" placeholder="Google API キー (AIzaSy...)" value="">
+</div>
+<div class="row">
+  <input id="folder" placeholder="Drive フォルダリンク または フォルダID">
+</div>
+<button onclick="runDiag()">🔍 診断開始</button>
+<button onclick="clearLog()">クリア</button>
+
+<div id="log"></div>
+
+<script>
+const DAPI='https://www.googleapis.com/drive/v3';
+let apiKey='', log='';
+
+function xid(url){
+  const u=url.trim();
+  let m=u.match(/\/folders\/([a-zA-Z0-9_-]+)/);if(m)return m[1];
+  if(/^[a-zA-Z0-9_-]{20,}$/.test(u))return u;
+  return null;
+}
+
+function p(msg,cls=''){
+  log+=`<div class="${cls}">${msg}</div>`;
+  document.getElementById('log').innerHTML=log;
+}
+function clearLog(){log='';document.getElementById('log').innerHTML='';}
+
+async function dList(pid, extra=''){
+  let q=`'${pid}' in parents and trashed=false`;
+  if(extra) q+=' and '+extra;
+  const params=new URLSearchParams({q,fields:'files(id,name,mimeType,size,modifiedTime)',pageSize:'1000',key:apiKey});
+  const r=await fetch(`${DAPI}/files?${params}`);
+  if(!r.ok){const t=await r.text();throw new Error(`${r.status}: ${t.slice(0,200)}`);}
+  return (await r.json()).files||[];
+}
+
+async function dRead(fid){
+  const r=await fetch(`${DAPI}/files/${fid}?alt=media&key=${apiKey}`);
+  if(!r.ok) throw new Error(`read ${r.status}`);
+  return r.json();
+}
+
+async function runDiag(){
+  clearLog();
+  apiKey = document.getElementById('key').value.trim();
+  const fid = xid(document.getElementById('folder').value.trim());
+  if(!apiKey||!fid){p('⚠️ APIキーとフォルダIDを入力してください','warn');return;}
+
+  // ── Step1: ルートフォルダ ──
+  p('<h2>Step 1: ルートフォルダの内容</h2>');
+  let rootFiles;
+  try{
+    rootFiles = await dList(fid);
+    p(`✅ ${rootFiles.length} 件取得`,'ok');
+    rootFiles.forEach(f=>{
+      const isDir=f.mimeType.includes('folder');
+      p(`  ${isDir?'📁':'📄'} <b>${f.name}</b>  <span style="color:#666">${f.mimeType}  id=${f.id}</span>`);
+    });
+  }catch(e){p('❌ ルート取得失敗: '+e.message,'er');return;}
+
+  // .library フォルダを探す
+  const libDir=rootFiles.find(f=>f.mimeType.includes('folder')&&f.name.endsWith('.library'));
+  let libRoot=rootFiles, libRootId=fid;
+  if(libDir){
+    p(`<br>📁 .library フォルダ発見: <b>${libDir.name}</b>`,'ok');
+    p('<h2>Step 1b: .library 内部</h2>');
+    try{
+      libRoot=await dList(libDir.id);
+      libRootId=libDir.id;
+      libRoot.forEach(f=>p(`  ${f.mimeType.includes('folder')?'📁':'📄'} <b>${f.name}</b>  <span style="color:#666">${f.id}</span>`));
+    }catch(e){p('❌ .library内取得失敗: '+e.message,'er');return;}
+  }
+
+  // ── Step2: metadata.json ──
+  p('<h2>Step 2: metadata.json の内容</h2>');
+  const metaFile=libRoot.find(f=>f.name==='metadata.json'&&!f.mimeType.includes('folder'));
+  if(!metaFile){p('⚠️ metadata.json が見つかりません','warn');}
+  else{
+    p(`✅ metadata.json 発見 id=${metaFile.id}  size=${metaFile.size||'?'}bytes`,'ok');
+    try{
+      const meta=await dRead(metaFile.id);
+      const keys=Object.keys(meta);
+      p(`キー一覧: <b>${keys.join(', ')}</b>`);
+      p(`folders: ${(meta.folders||[]).length} 件`);
+      p(`items:   ${(meta.items||[]).length} 件 ${(meta.items||[]).length>0?'<span class="ok">← 最速パス！全アイテムここにあり</span>':'<span class="warn">← なし（.infoフォルダから読む必要あり）</span>'}`);
+      if((meta.folders||[]).length>0){
+        p('<br>フォルダ一覧（最初の5件）:');
+        meta.folders.slice(0,5).forEach(f=>p(`  📁 ${f.name} (id=${f.id}, children=${(f.children||[]).length})`));
+      }
+      if((meta.items||[]).length>0){
+        p('<br>アイテムサンプル（最初の1件）:');
+        p('<pre>'+JSON.stringify(meta.items[0],null,2)+'</pre>');
+      }
+    }catch(e){p('❌ metadata.json 読み取り失敗: '+e.message,'er');}
+  }
+
+  // ── Step3: images フォルダ ──
+  p('<h2>Step 3: images フォルダ</h2>');
+  const imagesDir=libRoot.find(f=>f.mimeType.includes('folder')&&f.name.toLowerCase()==='images');
+  if(!imagesDir){p('⚠️ images フォルダが見つかりません','warn');}
+  else{
+    p(`✅ images フォルダ発見 id=${imagesDir.id}`,'ok');
+
+    // .info フォルダ数を確認
+    let infoFolders;
+    try{
+      infoFolders=await dList(imagesDir.id,"mimeType='application/vnd.google-apps.folder'");
+      p(`📁 .info フォルダ数: <b>${infoFolders.length} 件</b>`);
+      if(infoFolders.length>0){
+        p('最初の3件:');
+        infoFolders.slice(0,3).forEach(f=>p(`  📁 ${f.name}  id=${f.id}`));
+
+        // ── Step4: .info の中身を1件だけ確認 ──
+        p('<h2>Step 4: .info フォルダ1件の中身サンプル</h2>');
+        const sample=infoFolders[0];
+        const sFiles=await dList(sample.id);
+        p(`${sample.name} 内: ${sFiles.length} ファイル`);
+        sFiles.forEach(f=>p(`  📄 ${f.name}  ${f.mimeType}  size=${f.size||'?'}  id=${f.id}`));
+
+        // metadata.json の中身
+        const smeta=sFiles.find(f=>f.name==='metadata.json');
+        if(smeta){
+          const sm=await dRead(smeta.id);
+          p('<br>.info/metadata.json の内容:');
+          p('<pre>'+JSON.stringify(sm,null,2)+'</pre>');
+        }
+      }
+    }catch(e){p('❌ images内取得失敗: '+e.message,'er');}
+
+    // ── Step5: ancestors クエリでサムネイル一括取得テスト ──
+    p('<h2>Step 5: サムネイル一括取得テスト（ancestors クエリ）</h2>');
+    try{
+      const q=`'${imagesDir.id}' in ancestors and name='thumbnail.png' and trashed=false`;
+      const params=new URLSearchParams({q,fields:'files(id,name,parents)',pageSize:'10',key:apiKey});
+      const r=await fetch(`${DAPI}/files?${params}`);
+      const data=await r.json();
+      if(r.ok){
+        p(`✅ ancestors クエリ成功！ ${(data.files||[]).length} 件取得（pageSize=10でテスト）`,'ok');
+        if(data.nextPageToken) p('nextPageToken あり → 全件は複数ページ必要','warn');
+        (data.files||[]).slice(0,3).forEach(f=>p(`  thumbnail id=${f.id}  parent=${f.parents&&f.parents[0]}`));
+      } else {
+        p('❌ ancestors クエリ失敗: '+JSON.stringify(data),'er');
+      }
+    }catch(e){p('❌ ancestors テスト失敗: '+e.message,'er');}
+  }
+
+  p('<h2 style="color:#4ade80">✅ 診断完了</h2>');
+}
+</script>
+</body>
+</html>
