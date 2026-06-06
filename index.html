@@ -12,809 +12,564 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#171717;
-  --bg2:#1f1f1f;
-  --bg3:#2a2a2a;
-  --bg4:#333;
-  --border:#333;
-  --border2:#444;
-  --text:#e8e8e8;
-  --text2:#999;
-  --text3:#666;
-  --accent:#4f9cf9;
-  --accent2:#3a7fd4;
-  --tag-bg:#2a3040;
-  --tag-text:#7aadff;
-  --radius:8px;
-  --sidebar:220px;
-  --header:52px;
+  --bg:#171717;--bg2:#1f1f1f;--bg3:#2a2a2a;--bg4:#333;
+  --border:#2e2e2e;--border2:#444;
+  --text:#e8e8e8;--text2:#999;--text3:#555;
+  --accent:#4f9cf9;--accent2:#3a7fd4;
+  --tag-bg:#1e2d44;--tag-text:#7aadff;
+  --radius:8px;--sidebar:220px;--header:52px;
 }
 html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;-webkit-font-smoothing:antialiased}
 
-/* ===== SETUP SCREEN ===== */
-#setup{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:100;padding:24px}
+/* SETUP */
+#setup{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
 #setup.hidden{display:none}
-.setup-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:36px 32px;max-width:480px;width:100%}
-.setup-card h1{font-size:22px;font-weight:500;margin-bottom:6px;letter-spacing:-.3px}
-.setup-card p{color:var(--text2);line-height:1.6;margin-bottom:24px;font-size:13px}
-.setup-steps{margin-bottom:24px}
-.setup-step{display:flex;gap:12px;margin-bottom:14px;align-items:flex-start}
-.step-num{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
-.step-text{color:var(--text2);font-size:12px;line-height:1.6}
-.step-text strong{color:var(--text);font-weight:500}
-.input-row{display:flex;gap:8px}
-#drive-input{flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 14px;color:var(--text);font-size:13px;font-family:inherit;outline:none;transition:border-color .15s}
-#drive-input:focus{border-color:var(--accent)}
-#drive-input::placeholder{color:var(--text3)}
-.btn-primary{background:var(--accent);color:#fff;border:none;border-radius:var(--radius);padding:10px 18px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;white-space:nowrap;transition:background .15s}
+.setup-card{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:32px 28px;max-width:500px;width:100%}
+.setup-card h1{font-size:20px;font-weight:500;margin-bottom:4px;display:flex;align-items:center;gap:10px}
+.setup-card h1 .logo{width:28px;height:28px;background:var(--accent);border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.setup-card>p{color:var(--text2);line-height:1.6;margin-bottom:22px;font-size:12.5px;margin-top:8px}
+.field-group{margin-bottom:16px}
+.field-label{font-size:11.5px;color:var(--text2);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.field-label .badge{background:var(--accent);color:#fff;font-size:10px;padding:1px 6px;border-radius:4px}
+.field-label .badge.optional{background:var(--bg4);color:var(--text2)}
+.field-input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:9px 12px;color:var(--text);font-size:13px;font-family:inherit;outline:none;transition:border-color .15s}
+.field-input:focus{border-color:var(--accent)}
+.field-input::placeholder{color:var(--text3)}
+.field-hint{font-size:11px;color:var(--text3);margin-top:5px;line-height:1.5}
+.field-hint a{color:var(--accent);text-decoration:none}
+.field-hint code{background:var(--bg4);padding:1px 5px;border-radius:3px;font-size:10.5px}
+.setup-footer{display:flex;align-items:center;gap:10px;margin-top:20px}
+.btn-primary{background:var(--accent);color:#fff;border:none;border-radius:var(--radius);padding:10px 22px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:background .15s}
 .btn-primary:hover{background:var(--accent2)}
-.setup-error{color:#ff6b6b;font-size:12px;margin-top:8px;display:none}
+.setup-error{color:#ff6b6b;font-size:12px;margin-top:10px;display:none;line-height:1.5}
+.setup-steps-toggle{color:var(--accent);font-size:12px;cursor:pointer;margin-top:14px;display:inline-block}
+.setup-steps{margin-top:12px;display:none}
+.setup-steps.open{display:block}
+.setup-step{display:flex;gap:10px;margin-bottom:12px}
+.step-num{width:20px;height:20px;border-radius:50%;background:var(--bg4);color:var(--text2);font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step-body{font-size:12px;color:var(--text2);line-height:1.6}
+.step-body strong{color:var(--text)}
 
-/* ===== LAYOUT ===== */
+/* APP */
 #app{display:none;height:100vh;flex-direction:column}
 #app.visible{display:flex}
 
 /* HEADER */
-#header{height:var(--header);background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 14px;flex-shrink:0;position:relative;z-index:10}
+#header{height:var(--header);background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;padding:0 12px;flex-shrink:0;z-index:10}
 .header-logo{width:28px;height:28px;background:var(--accent);border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.header-logo svg{width:16px;height:16px}
-#search-box{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:6px;display:flex;align-items:center;gap:8px;padding:0 10px;height:32px;transition:border-color .15s}
+#search-box{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:6px;display:flex;align-items:center;gap:7px;padding:0 10px;height:32px;transition:border-color .15s;min-width:0}
 #search-box:focus-within{border-color:var(--border2)}
-#search-box svg{flex-shrink:0;color:var(--text3)}
 #search-input{background:none;border:none;outline:none;color:var(--text);font-size:13px;font-family:inherit;flex:1;min-width:0}
 #search-input::placeholder{color:var(--text3)}
-.header-btn{width:32px;height:32px;background:none;border:1px solid var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);transition:all .15s;flex-shrink:0}
-.header-btn:hover{border-color:var(--border2);color:var(--text)}
+.hbtn{width:32px;height:32px;background:none;border:1px solid var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);transition:all .15s;flex-shrink:0}
+.hbtn:hover{border-color:var(--border2);color:var(--text)}
 #sidebar-toggle{display:none}
 
 /* BODY */
 #body{display:flex;flex:1;overflow:hidden}
 
 /* SIDEBAR */
-#sidebar{width:var(--sidebar);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;transition:width .2s ease,transform .2s ease}
-.sidebar-section{padding:10px 8px 4px}
-.sidebar-label{font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;padding:0 6px;margin-bottom:4px}
-.sidebar-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;color:var(--text2);transition:all .1s;user-select:none}
-.sidebar-item:hover{background:var(--bg3);color:var(--text)}
-.sidebar-item.active{background:var(--bg3);color:var(--text)}
-.sidebar-item svg{flex-shrink:0;width:15px;height:15px}
-.sidebar-item-name{font-size:12.5px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sidebar-item-count{font-size:11px;color:var(--text3);background:var(--bg4);padding:1px 6px;border-radius:10px}
-.folder-children{margin-left:14px;border-left:1px solid var(--border);padding-left:4px}
-.sidebar-item .folder-arrow{transition:transform .15s;flex-shrink:0}
-.sidebar-item.open .folder-arrow{transform:rotate(90deg)}
+#sidebar{width:var(--sidebar);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;overflow-x:hidden;transition:transform .2s ease;scrollbar-width:thin;scrollbar-color:var(--bg4) transparent}
+#sidebar::-webkit-scrollbar{width:3px}
+#sidebar::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:2px}
+.sb-section{padding:10px 8px 4px}
+.sb-label{font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;padding:0 6px;margin-bottom:4px}
+.sb-item{display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:6px;cursor:pointer;color:var(--text2);transition:all .1s;user-select:none;min-width:0}
+.sb-item:hover{background:var(--bg3);color:var(--text)}
+.sb-item.active{background:var(--bg3);color:var(--text)}
+.sb-item-name{font-size:12.5px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.sb-item-count{font-size:10.5px;color:var(--text3);background:var(--bg4);padding:1px 6px;border-radius:10px;flex-shrink:0}
+.sb-arrow{transition:transform .15s;flex-shrink:0;width:10px;height:10px}
+.sb-item.open .sb-arrow{transform:rotate(90deg)}
+.folder-children{margin-left:12px;border-left:1px solid var(--border);padding-left:4px}
 
 /* MAIN */
-#main{flex:1;display:flex;flex-direction:column;overflow:hidden}
-
-/* TOOLBAR */
-#toolbar{height:42px;display:flex;align-items:center;gap:8px;padding:0 14px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg)}
-.sort-btn{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:5px;background:none;border:1px solid var(--border);color:var(--text2);font-size:12px;cursor:pointer;font-family:inherit;transition:all .15s}
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+#toolbar{height:40px;display:flex;align-items:center;gap:6px;padding:0 12px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg)}
+.sort-btn{padding:4px 10px;border-radius:5px;background:none;border:1px solid var(--border);color:var(--text2);font-size:12px;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
 .sort-btn:hover{border-color:var(--border2);color:var(--text)}
 .sort-btn.active{border-color:var(--accent);color:var(--accent)}
-.view-btns{display:flex;gap:4px;margin-left:auto}
-.view-btn{width:28px;height:28px;background:none;border:1px solid var(--border);border-radius:5px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);transition:all .15s}
-.view-btn:hover,.view-btn.active{border-color:var(--border2);color:var(--text)}
-.view-btn.active{background:var(--bg3)}
 #item-count{font-size:12px;color:var(--text3);margin-left:auto;white-space:nowrap}
-.tag-filter-bar{display:flex;gap:6px;overflow-x:auto;padding:8px 14px;border-bottom:1px solid var(--border);scrollbar-width:none;-webkit-overflow-scrolling:touch}
-.tag-filter-bar::-webkit-scrollbar{display:none}
-.tag-chip{background:var(--tag-bg);color:var(--tag-text);font-size:11px;padding:3px 10px;border-radius:12px;cursor:pointer;white-space:nowrap;border:1px solid transparent;transition:all .1s;user-select:none}
+.view-btns{display:flex;gap:3px;margin-left:8px}
+.vbtn{width:27px;height:27px;background:none;border:1px solid var(--border);border-radius:5px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);transition:all .15s}
+.vbtn:hover,.vbtn.active{border-color:var(--border2);color:var(--text)}
+.vbtn.active{background:var(--bg3)}
+
+#tag-bar{display:flex;gap:5px;overflow-x:auto;padding:7px 12px;border-bottom:1px solid var(--border);scrollbar-width:none;-webkit-overflow-scrolling:touch;flex-shrink:0}
+#tag-bar::-webkit-scrollbar{display:none}
+#tag-bar:empty{display:none}
+.tag-chip{background:var(--tag-bg);color:var(--tag-text);font-size:11px;padding:3px 9px;border-radius:12px;cursor:pointer;white-space:nowrap;border:1px solid transparent;transition:all .1s;user-select:none;flex-shrink:0}
 .tag-chip:hover{border-color:var(--tag-text)}
-.tag-chip.active{border-color:var(--tag-text);background:#3a4a6a}
-.tag-filter-bar:empty{display:none}
+.tag-chip.active{border-color:var(--tag-text);background:#243556}
 
 /* GRID */
-#grid-container{flex:1;overflow-y:auto;overflow-x:hidden;padding:12px;scrollbar-width:thin;scrollbar-color:var(--bg4) transparent;-webkit-overflow-scrolling:touch}
-#grid{display:grid;gap:4px;grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
-#grid.list-view{grid-template-columns:1fr;gap:2px}
+#grid-wrap{flex:1;overflow-y:auto;overflow-x:hidden;padding:10px;scrollbar-width:thin;scrollbar-color:var(--bg4) transparent;-webkit-overflow-scrolling:touch}
+#grid-wrap::-webkit-scrollbar{width:4px}
+#grid-wrap::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:2px}
+#grid{display:grid;gap:3px;grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+#grid.list{grid-template-columns:1fr;gap:1px}
 
-/* CARD */
-.card{border-radius:6px;overflow:hidden;cursor:pointer;transition:transform .1s,box-shadow .1s;position:relative;background:var(--bg2)}
-.card:hover{transform:scale(1.02);box-shadow:0 4px 16px rgba(0,0,0,.5)}
-.card:active{transform:scale(.98)}
-.card-thumb{width:100%;aspect-ratio:1;object-fit:cover;background:var(--bg3);display:block;font-size:0}
-.card-thumb.error{background:var(--bg3);aspect-ratio:1}
-.card-info{padding:6px 8px 8px}
+.card{border-radius:6px;overflow:hidden;cursor:pointer;transition:transform .1s,box-shadow .1s;background:var(--bg2)}
+.card:hover{transform:scale(1.025);box-shadow:0 4px 18px rgba(0,0,0,.55)}
+.card:active{transform:scale(.97)}
+.thumb{width:100%;aspect-ratio:1;object-fit:cover;background:var(--bg3);display:block;font-size:0;color:transparent}
+.thumb.err{background:var(--bg3)}
+.card-body{padding:6px 7px 8px}
 .card-name{font-size:11.5px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
 .card-meta{font-size:10.5px;color:var(--text3)}
-.card-tags{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px}
-.card-tag{background:var(--tag-bg);color:var(--tag-text);font-size:10px;padding:1px 6px;border-radius:8px}
-/* list view */
-#grid.list-view .card{display:flex;align-items:center;gap:10px;border-radius:5px;padding:4px 8px;background:none}
-#grid.list-view .card:hover{background:var(--bg2)}
-#grid.list-view .card-thumb{width:36px;height:36px;aspect-ratio:1;border-radius:4px;flex-shrink:0}
-#grid.list-view .card-info{padding:0;flex:1;min-width:0;display:flex;align-items:center;gap:12px}
-#grid.list-view .card-name{font-size:13px;flex:1}
-#grid.list-view .card-meta{white-space:nowrap}
-#grid.list-view .card-tags{display:none}
+.card-tags{display:flex;flex-wrap:wrap;gap:2px;margin-top:4px}
+.card-tag{background:var(--tag-bg);color:var(--tag-text);font-size:10px;padding:1px 5px;border-radius:7px}
 
-/* EMPTY / LOADING -->*/
-#loading-state{display:none;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:12px;color:var(--text3)}
-#loading-state.visible{display:flex}
-.spinner{width:32px;height:32px;border:2px solid var(--bg4);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+#grid.list .card{display:flex;align-items:center;gap:9px;border-radius:4px;padding:5px 8px;background:none}
+#grid.list .card:hover{background:var(--bg2);transform:none;box-shadow:none}
+#grid.list .thumb{width:34px;height:34px;aspect-ratio:1;border-radius:4px;flex-shrink:0}
+#grid.list .card-body{padding:0;flex:1;min-width:0;display:flex;align-items:center;gap:10px}
+#grid.list .card-name{font-size:13px;flex:1}
+#grid.list .card-meta{white-space:nowrap;flex-shrink:0}
+#grid.list .card-tags{display:none}
+
+/* STATES */
+#loading{display:none;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:10px;color:var(--text3)}
+#loading.on{display:flex}
+.spinner{width:30px;height:30px;border:2px solid var(--bg4);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-#empty-state{display:none;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:8px;color:var(--text3)}
-#empty-state.visible{display:flex}
+#empty{display:none;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:8px;color:var(--text3);font-size:13px}
+#empty.on{display:flex}
 
 /* LIGHTBOX */
-#lightbox{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:200;display:none;flex-direction:column;align-items:center;justify-content:center}
-#lightbox.visible{display:flex}
-#lightbox-img{max-width:calc(100vw - 48px);max-height:calc(100vh - 120px);object-fit:contain;border-radius:4px}
-#lightbox-close{position:absolute;top:14px;right:14px;background:var(--bg3);border:1px solid var(--border);border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text);transition:background .15s}
-#lightbox-close:hover{background:var(--bg4)}
-#lightbox-meta{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.8));padding:20px 20px 16px;text-align:center}
-#lightbox-name{font-size:14px;font-weight:500;margin-bottom:4px}
-#lightbox-tags{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-top:6px}
+#lb{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:200;display:none;flex-direction:column;align-items:center;justify-content:center}
+#lb.on{display:flex}
+#lb-img{max-width:calc(100vw - 48px);max-height:calc(100vh - 110px);object-fit:contain;border-radius:4px}
+#lb-close{position:absolute;top:12px;right:12px;background:var(--bg3);border:1px solid var(--border2);border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text)}
+#lb-close:hover{background:var(--bg4)}
+#lb-info{position:absolute;bottom:0;left:0;right:0;padding:20px;text-align:center;background:linear-gradient(transparent,rgba(0,0,0,.75))}
+#lb-name{font-size:14px;font-weight:500;margin-bottom:6px}
+#lb-tags{display:flex;flex-wrap:wrap;gap:5px;justify-content:center}
 
-/* MOBILE SIDEBAR OVERLAY */
-@media(max-width:680px){
+/* MOBILE */
+@media(max-width:660px){
   :root{--sidebar:260px}
   #sidebar-toggle{display:flex}
-  #sidebar{position:fixed;top:0;left:0;bottom:0;z-index:50;transform:translateX(-100%);box-shadow:4px 0 20px rgba(0,0,0,.4)}
+  #sidebar{position:fixed;top:0;left:0;bottom:0;z-index:50;transform:translateX(-100%);box-shadow:6px 0 24px rgba(0,0,0,.5)}
   #sidebar.open{transform:translateX(0)}
-  #sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:49;display:none}
-  #sidebar-overlay.visible{display:block}
+  #sb-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:49;display:none}
+  #sb-overlay.on{display:block}
 }
-/* extra small */
-@media(max-width:400px){
-  #grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}
-}
-
-/* SCROLLBAR */
-#grid-container::-webkit-scrollbar{width:4px}
-#grid-container::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:2px}
+@media(max-width:380px){#grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}}
 </style>
 </head>
 <body>
 
-<!-- ===== SETUP ===== -->
+<!-- SETUP -->
 <div id="setup">
   <div class="setup-card">
-    <h1>Eagle Viewer</h1>
-    <p>Google Drive に保存した Eagle ライブラリを、ブラウザで閲覧できます。</p>
-    <div class="setup-steps">
-      <div class="setup-step">
-        <div class="step-num">1</div>
-        <div class="step-text"><strong>Google Drive</strong> でライブラリフォルダを右クリック → 「共有」→「リンクを知っている全員」に設定</div>
+    <h1>
+      <span class="logo">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2L10.5 6.5H13.5L11.5 9.5L12.5 13.5L8 11.5L3.5 13.5L4.5 9.5L2.5 6.5H5.5Z"/></svg>
+      </span>
+      Eagle Viewer
+    </h1>
+    <p>Google Drive の Eagle ライブラリを iPhone・iPad・PC で閲覧できます。</p>
+
+    <div class="field-group">
+      <div class="field-label">
+        <span>Google Drive フォルダリンク</span>
+        <span class="badge">必須</span>
       </div>
-      <div class="setup-step">
-        <div class="step-num">2</div>
-        <div class="step-text">共有リンクをコピーして下に貼り付け<br><strong>例：</strong>https://drive.google.com/drive/folders/<span style="color:var(--accent)">xxxxxxxxxxxxxxx</span></div>
+      <input class="field-input" id="inp-folder" type="text" placeholder="https://drive.google.com/drive/folders/xxxxxxx" autocomplete="off" autocorrect="off" spellcheck="false">
+      <div class="field-hint">Eagle の <code>.library</code> フォルダを右クリック → 共有 → 「リンクを知っている全員」に設定してリンクをコピー</div>
+    </div>
+
+    <div class="field-group">
+      <div class="field-label">
+        <span>Google API キー</span>
+        <span class="badge">必須</span>
       </div>
+      <input class="field-input" id="inp-key" type="text" placeholder="AIzaSy..." autocomplete="off" autocorrect="off" spellcheck="false">
+      <div class="field-hint">Google Cloud Console で無料取得 → <a href="#" onclick="toggleSteps();return false">取得手順を表示 ▾</a></div>
     </div>
-    <div class="input-row">
-      <input id="drive-input" type="text" placeholder="Google Drive フォルダリンクを貼り付け…" autocomplete="off" autocorrect="off" spellcheck="false">
-      <button class="btn-primary" onclick="startViewer()">開く</button>
+
+    <div id="step-box" class="setup-steps">
+      <div class="setup-step"><div class="step-num">1</div><div class="step-body"><strong>Google Cloud Console</strong>（<a href="https://console.cloud.google.com" target="_blank" style="color:var(--accent)">console.cloud.google.com</a>）にアクセス・ログイン</div></div>
+      <div class="setup-step"><div class="step-num">2</div><div class="step-body">上部の「プロジェクトを選択」→「新しいプロジェクト」→ 任意の名前で作成</div></div>
+      <div class="setup-step"><div class="step-num">3</div><div class="step-body">左メニュー「APIとサービス」→「ライブラリ」→ 「Google Drive API」を検索 → 有効にする</div></div>
+      <div class="setup-step"><div class="step-num">4</div><div class="step-body">「認証情報」→「認証情報を作成」→「APIキー」→ 表示されたキーをコピー</div></div>
+      <div class="setup-step"><div class="step-num">5</div><div class="step-body">（推奨）作成したAPIキーの「編集」→「アプリケーションの制限」→「HTTPリファラー」→ <code>https://あなたのGitHub名.github.io/*</code> を追加すると他人が使えなくなり安全</div></div>
     </div>
-    <div id="setup-error" class="setup-error"></div>
+
+    <div style="display:flex;gap:8px;margin-top:20px">
+      <button class="btn-primary" onclick="startViewer()">ライブラリを開く</button>
+    </div>
+    <div id="setup-err" class="setup-error"></div>
   </div>
 </div>
 
-<!-- ===== APP ===== -->
+<!-- APP -->
 <div id="app">
   <div id="header">
-    <button class="header-btn" id="sidebar-toggle" onclick="toggleSidebar()" aria-label="サイドバー">
-      <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="2" y1="4.5" x2="13" y2="4.5"/><line x1="2" y1="7.5" x2="13" y2="7.5"/><line x1="2" y1="10.5" x2="13" y2="10.5"/></svg>
+    <button class="hbtn" id="sidebar-toggle" onclick="openSB()" aria-label="サイドバー">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="1" y1="3.5" x2="13" y2="3.5"/><line x1="1" y1="7" x2="13" y2="7"/><line x1="1" y1="10.5" x2="13" y2="10.5"/></svg>
     </button>
     <div class="header-logo">
-      <svg viewBox="0 0 16 16" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M8 2L10.5 6.5H13.5L11.5 9.5L12.5 13.5L8 11.5L3.5 13.5L4.5 9.5L2.5 6.5H5.5Z"/>
-      </svg>
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2L10.5 6.5H13.5L11.5 9.5L12.5 13.5L8 11.5L3.5 13.5L4.5 9.5L2.5 6.5H5.5Z"/></svg>
     </div>
     <div id="search-box">
-      <svg width="13" height="13" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="6" cy="6" r="4"/><line x1="9.5" y1="9.5" x2="13" y2="13"/></svg>
-      <input id="search-input" type="search" placeholder="ファイル名・タグで検索…" oninput="onSearch(this.value)">
+      <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="5.5" cy="5.5" r="4"/><line x1="9" y1="9" x2="13" y2="13"/></svg>
+      <input id="search-input" type="search" placeholder="名前・タグで検索…" oninput="onSearch(this.value)">
     </div>
-    <button class="header-btn" onclick="resetViewer()" title="ライブラリを変更">
-      <svg width="14" height="14" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 7.5A6 6 0 1 1 3 11.5"/><polyline points="1.5,11.5 1.5,7.5 5.5,7.5"/></svg>
+    <button class="hbtn" onclick="resetViewer()" title="ライブラリ変更">
+      <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 7A6 6 0 1 1 2.8 11"/><polyline points="1,11 1,7 5,7"/></svg>
     </button>
   </div>
 
   <div id="body">
-    <div id="sidebar-overlay" onclick="closeSidebar()"></div>
+    <div id="sb-overlay" onclick="closeSB()"></div>
     <div id="sidebar">
-      <div class="sidebar-section">
-        <div class="sidebar-label">ライブラリ</div>
-        <div class="sidebar-item active" id="all-item" onclick="selectFolder(null)">
-          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="3" width="12" height="10" rx="1.5"/><path d="M1.5 6h12"/></svg>
-          <span class="sidebar-item-name">すべて</span>
-          <span class="sidebar-item-count" id="total-count">0</span>
+      <div class="sb-section">
+        <div class="sb-label">ライブラリ</div>
+        <div class="sb-item active" id="all-item" onclick="selFolder(null)">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="2.5" width="12" height="10" rx="1.5"/><line x1="1" y1="6" x2="13" y2="6"/></svg>
+          <span class="sb-item-name">すべて</span>
+          <span class="sb-item-count" id="total-ct">0</span>
         </div>
       </div>
-      <div class="sidebar-section">
-        <div class="sidebar-label">フォルダ</div>
+      <div class="sb-section">
+        <div class="sb-label">フォルダ</div>
         <div id="folder-list"></div>
       </div>
     </div>
 
     <div id="main">
       <div id="toolbar">
-        <button class="sort-btn active" id="sort-name-btn" onclick="setSort('name')">名前</button>
-        <button class="sort-btn" id="sort-date-btn" onclick="setSort('date')">更新日</button>
+        <button class="sort-btn active" id="sn" onclick="setSort('name')">名前</button>
+        <button class="sort-btn" id="sd" onclick="setSort('date')">更新日</button>
         <span id="item-count"></span>
         <div class="view-btns">
-          <button class="view-btn active" id="grid-btn" onclick="setView('grid')" title="グリッド表示">
-            <svg width="13" height="13" viewBox="0 0 12 12" fill="currentColor"><rect x="0" y="0" width="5" height="5" rx="1"/><rect x="7" y="0" width="5" height="5" rx="1"/><rect x="0" y="7" width="5" height="5" rx="1"/><rect x="7" y="7" width="5" height="5" rx="1"/></svg>
+          <button class="vbtn active" id="vg" onclick="setView('grid')" title="グリッド">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><rect x="0" y="0" width="5" height="5" rx="1"/><rect x="7" y="0" width="5" height="5" rx="1"/><rect x="0" y="7" width="5" height="5" rx="1"/><rect x="7" y="7" width="5" height="5" rx="1"/></svg>
           </button>
-          <button class="view-btn" id="list-btn" onclick="setView('list')" title="リスト表示">
-            <svg width="13" height="13" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><line x1="4" y1="2" x2="11" y2="2"/><line x1="4" y1="6" x2="11" y2="6"/><line x1="4" y1="10" x2="11" y2="10"/><circle cx="1.5" cy="2" r="1" fill="currentColor" stroke="none"/><circle cx="1.5" cy="6" r="1" fill="currentColor" stroke="none"/><circle cx="1.5" cy="10" r="1" fill="currentColor" stroke="none"/></svg>
+          <button class="vbtn" id="vl" onclick="setView('list')" title="リスト">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><line x1="4" y1="2" x2="11" y2="2"/><line x1="4" y1="6" x2="11" y2="6"/><line x1="4" y1="10" x2="11" y2="10"/><circle cx="1.5" cy="2" r="1" fill="currentColor" stroke="none"/><circle cx="1.5" cy="6" r="1" fill="currentColor" stroke="none"/><circle cx="1.5" cy="10" r="1" fill="currentColor" stroke="none"/></svg>
           </button>
         </div>
       </div>
-      <div id="tag-filter-bar" class="tag-filter-bar"></div>
-
-      <div id="loading-state">
-        <div class="spinner"></div>
-        <span id="loading-text">ライブラリを読み込み中…</span>
+      <div id="tag-bar"></div>
+      <div id="loading"><div class="spinner"></div><span id="load-txt">読み込み中…</span></div>
+      <div id="empty">
+        <svg width="38" height="38" viewBox="0 0 38 38" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity=".4"><rect x="4" y="9" width="30" height="23" rx="3"/><line x1="4" y1="15" x2="34" y2="15"/><circle cx="19" cy="24" r="4"/></svg>
+        アイテムが見つかりません
       </div>
-      <div id="empty-state">
-        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".4"><rect x="5" y="10" width="30" height="24" rx="3"/><path d="M5 16h30"/><circle cx="20" cy="24" r="4"/></svg>
-        <span>アイテムが見つかりません</span>
-      </div>
-      <div id="grid-container">
-        <div id="grid"></div>
-      </div>
+      <div id="grid-wrap"><div id="grid"></div></div>
     </div>
   </div>
 </div>
 
 <!-- LIGHTBOX -->
-<div id="lightbox" onclick="closeLightbox()">
-  <button id="lightbox-close" onclick="closeLightbox()">
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="3" y1="3" x2="13" y2="13"/><line x1="13" y1="3" x2="3" y2="13"/></svg>
-  </button>
-  <img id="lightbox-img" src="" alt="">
-  <div id="lightbox-meta">
-    <div id="lightbox-name"></div>
-    <div id="lightbox-tags"></div>
+<div id="lb" onclick="closeLB()">
+  <div id="lb-close" onclick="closeLB()">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="2" y1="2" x2="12" y2="12"/><line x1="12" y1="2" x2="2" y2="12"/></svg>
+  </div>
+  <img id="lb-img" src="" alt="">
+  <div id="lb-info">
+    <div id="lb-name"></div>
+    <div id="lb-tags"></div>
   </div>
 </div>
 
 <script>
-// =========================================================
-//  STATE
-// =========================================================
-const S = {
-  rootFolderId: null,
-  folders: [],         // [{id, name, children, imageCount}]
-  items: [],           // all parsed items
-  activeFolderId: null,
-  searchQuery: '',
-  sortMode: 'name',    // 'name' | 'date'
-  viewMode: 'grid',    // 'grid' | 'list'
-  activeTag: null,
-  allTags: [],
-};
+// ─── STATE ───────────────────────────────────────────
+const S={folderId:null,apiKey:null,items:[],folders:[],active:null,q:'',sort:'name',view:'grid',tag:null};
+const API='https://www.googleapis.com/drive/v3';
 
-// =========================================================
-//  GOOGLE DRIVE HELPERS
-// =========================================================
-const API = 'https://www.googleapis.com/drive/v3';
-const FIELDS_LIST = 'files(id,name,mimeType,modifiedTime,size)';
-const PAGE_SIZE = 200;
-
-function folderId(url){
-  const m = url.match(/\/folders\/([a-zA-Z0-9_-]+)/);
-  if(m) return m[1];
-  const m2 = url.match(/id=([a-zA-Z0-9_-]+)/);
-  if(m2) return m2[1];
-  // maybe just an ID
-  if(/^[a-zA-Z0-9_-]{20,}$/.test(url.trim())) return url.trim();
+// ─── DRIVE HELPERS ───────────────────────────────────
+function extractId(url){
+  const u=url.trim();
+  let m=u.match(/\/folders\/([a-zA-Z0-9_-]+)/);if(m)return m[1];
+  m=u.match(/[?&]id=([a-zA-Z0-9_-]+)/);if(m)return m[1];
+  if(/^[a-zA-Z0-9_-]{20,}$/.test(u))return u;
   return null;
 }
 
-async function listFiles(parentId, mimeType){
-  let q = `'${parentId}' in parents and trashed=false`;
-  if(mimeType) q += ` and mimeType='${mimeType}'`;
-  const url = `${API}/files?q=${encodeURIComponent(q)}&fields=${FIELDS_LIST}&pageSize=${PAGE_SIZE}&key=`;
-  // use no-key public access (works for publicly shared folders)
-  const resp = await fetch(`${API}/files?q=${encodeURIComponent(q)}&fields=${encodeURIComponent(FIELDS_LIST)}&pageSize=${PAGE_SIZE}&supportsAllDrives=true`);
-  if(!resp.ok) throw new Error(`Drive API error: ${resp.status} ${resp.statusText}`);
-  const data = await resp.json();
-  return data.files || [];
+async function driveList(parentId, extraQ=''){
+  let q=`'${parentId}' in parents and trashed=false`;
+  if(extraQ) q+=' and '+extraQ;
+  const p=new URLSearchParams({q,fields:'files(id,name,mimeType,modifiedTime)',pageSize:'1000',key:S.apiKey});
+  const r=await fetch(`${API}/files?${p}`);
+  if(!r.ok){const t=await r.text();throw new Error(`Drive API ${r.status}: ${t.slice(0,160)}`);}
+  return (await r.json()).files||[];
 }
 
-async function listFilesNoKey(parentId, mimeFilter){
-  // Public shared folder: use v3 without key but needs proper CORS handling
-  // Fallback: use the export/download approach
-  let q = `'${parentId}' in parents and trashed=false`;
-  if(mimeFilter) q += ` and mimeType='${mimeFilter}'`;
-  const params = new URLSearchParams({
-    q, fields: FIELDS_LIST, pageSize: String(PAGE_SIZE), supportsAllDrives: 'true'
-  });
-  const r = await fetch(`${API}/files?${params}`);
-  if(!r.ok){
-    const t = await r.text();
-    throw new Error(`Drive API ${r.status}: ${t.slice(0,120)}`);
-  }
-  return (await r.json()).files || [];
-}
+function thumbUrl(id){return `https://drive.google.com/thumbnail?id=${id}&sz=w300`;}
+function directUrl(id){return `https://drive.google.com/uc?export=view&id=${id}`;}
 
-function thumbUrl(fileId){
-  return `https://drive.google.com/thumbnail?id=${fileId}&sz=w300`;
-}
-
-function directUrl(fileId){
-  return `https://drive.google.com/uc?export=view&id=${fileId}`;
-}
-
-// =========================================================
-//  EAGLE LIBRARY PARSER
-// =========================================================
-// Eagle library structure:
-//   <root>/                  ← library root
-//     metadata.json          ← library info (optional)
-//     images/                ← items folder
-//       <ID>.info/
-//         metadata.json      ← item metadata
-//         <name>.<ext>       ← source file (may not exist on Drive if moved)
-//     (thumbnail may be in the .info folder as thumbnail.png)
-
+// ─── LIBRARY LOADER ──────────────────────────────────
 async function loadLibrary(rootId){
-  setLoading('フォルダ構造を確認中…');
+  setLoad('フォルダ構造を確認中…');
+  const rootFiles=await driveList(rootId);
 
-  // First, check if root looks like an Eagle library (has "images" subfolder)
-  // or if root IS the library folder itself
-  let imagesId = null;
-  let metaFileId = null;
-
-  const rootContents = await listFilesNoKey(rootId);
-
-  // Look for "images" folder and metadata.json
-  for(const f of rootContents){
-    if(f.mimeType === 'application/vnd.google-apps.folder' && f.name.toLowerCase() === 'images') imagesId = f.id;
-    if(f.name === 'metadata.json') metaFileId = f.id;
+  // Detect structure
+  let imagesId=null, metaFileId=null;
+  for(const f of rootFiles){
+    if(f.mimeType==='application/vnd.google-apps.folder'&&f.name.toLowerCase()==='images') imagesId=f.id;
+    if(f.name==='metadata.json'&&f.mimeType!=='application/vnd.google-apps.folder') metaFileId=f.id;
   }
 
-  // If no "images" folder found, maybe user pointed to parent of .library folder
+  // Maybe user pointed to parent of .library folder
   if(!imagesId){
-    // Try to find a .library folder inside
-    const libraryFolders = rootContents.filter(f =>
-      f.mimeType === 'application/vnd.google-apps.folder' && f.name.endsWith('.library')
-    );
-    if(libraryFolders.length > 0){
-      const libRoot = libraryFolders[0].id;
-      const libContents = await listFilesNoKey(libRoot);
-      for(const f of libContents){
-        if(f.mimeType === 'application/vnd.google-apps.folder' && f.name.toLowerCase() === 'images') imagesId = f.id;
-        if(f.name === 'metadata.json') metaFileId = f.id;
+    const libFolders=rootFiles.filter(f=>f.mimeType==='application/vnd.google-apps.folder'&&f.name.endsWith('.library'));
+    if(libFolders.length){
+      const sub=await driveList(libFolders[0].id);
+      for(const f of sub){
+        if(f.mimeType==='application/vnd.google-apps.folder'&&f.name.toLowerCase()==='images') imagesId=f.id;
+        if(f.name==='metadata.json') metaFileId=f.id;
       }
     }
   }
 
-  // Parse library metadata if available
-  let libMeta = {};
+  // Load folder tree from metadata.json
+  let folders=[];
   if(metaFileId){
     try{
-      const r = await fetch(directUrl(metaFileId));
-      if(r.ok) libMeta = await r.json();
+      const r=await fetch(directUrl(metaFileId));
+      if(r.ok){const meta=await r.json();folders=parseFolders(meta.folders||[]);}
     }catch(e){}
   }
 
-  // If still no images folder, treat root as flat image folder
   if(!imagesId){
-    setLoading('画像ファイルを取得中…');
-    return await loadFlatFolder(rootId);
+    // Flat folder fallback
+    setLoad('画像ファイルを取得中…');
+    return await loadFlat(rootId,folders);
   }
 
-  // Eagle format: list .info subfolders inside images/
-  setLoading('アイテムを読み込み中…');
-  const infoFolders = await listFilesNoKey(imagesId, 'application/vnd.google-apps.folder');
-  const items = [];
-
-  // Load metadata in batches for speed
-  const BATCH = 20;
-  for(let i = 0; i < infoFolders.length; i += BATCH){
-    setLoading(`アイテムを読み込み中… (${Math.min(i+BATCH, infoFolders.length)} / ${infoFolders.length})`);
-    const batch = infoFolders.slice(i, i+BATCH);
-    const batchResults = await Promise.allSettled(batch.map(f => loadInfoFolder(f)));
-    for(const r of batchResults){
-      if(r.status === 'fulfilled' && r.value) items.push(r.value);
-    }
+  // Eagle format: list .info subfolders
+  setLoad('アイテム一覧を取得中…');
+  const infoFolders=await driveList(imagesId,'mimeType=\'application/vnd.google-apps.folder\'');
+  const items=[];
+  const BATCH=15;
+  for(let i=0;i<infoFolders.length;i+=BATCH){
+    setLoad(`アイテム読み込み中 ${Math.min(i+BATCH,infoFolders.length)} / ${infoFolders.length}`);
+    const res=await Promise.allSettled(infoFolders.slice(i,i+BATCH).map(loadInfo));
+    for(const r of res) if(r.status==='fulfilled'&&r.value) items.push(r.value);
   }
-
-  // Load folder structure from metadata.json (Eagle stores folder tree in root/metadata.json)
-  let folders = [];
-  if(metaFileId){
-    try{
-      const r = await fetch(directUrl(metaFileId));
-      if(r.ok){
-        const meta = await r.json();
-        folders = parseFolderTree(meta.folders || []);
-      }
-    }catch(e){}
-  }
-
-  return { items, folders };
+  return {items,folders};
 }
 
-async function loadInfoFolder(folder){
-  // Each .info folder contains metadata.json and optionally the file
-  const contents = await listFilesNoKey(folder.id);
-  const metaFile = contents.find(f => f.name === 'metadata.json');
+async function loadInfo(folder){
+  const files=await driveList(folder.id);
+  const metaFile=files.find(f=>f.name==='metadata.json');
   if(!metaFile) return null;
-
-  let meta = {};
-  try{
-    const r = await fetch(directUrl(metaFile.id));
-    if(r.ok) meta = await r.json();
-  }catch(e){ return null; }
-
-  // Find thumbnail: thumbnail.png preferred, then any image file
-  const thumbFile = contents.find(f => f.name === 'thumbnail.png' || f.name === 'thumbnail.jpg');
-  const imgFile = contents.find(f =>
-    f.mimeType && f.mimeType.startsWith('image/') && f.name !== 'metadata.json'
-  );
-  const previewId = thumbFile ? thumbFile.id : (imgFile ? imgFile.id : null);
-
-  return {
-    id: meta.id || folder.id,
-    name: meta.name || folder.name.replace('.info',''),
-    tags: meta.tags || [],
-    folders: meta.folders || [],      // folder IDs this item belongs to
-    annotation: meta.annotation || '',
-    mtime: meta.mtime || (folder.modifiedTime ? new Date(folder.modifiedTime).getTime() : 0),
-    ext: meta.ext || '',
-    width: meta.width || 0,
-    height: meta.height || 0,
-    previewId,
+  let meta={};
+  try{const r=await fetch(directUrl(metaFile.id));if(r.ok) meta=await r.json();}catch(e){return null;}
+  const thumb=files.find(f=>f.name==='thumbnail.png'||f.name==='thumbnail.jpg');
+  const img=files.find(f=>f.mimeType&&f.mimeType.startsWith('image/')&&f.name!=='metadata.json');
+  return{
+    id:meta.id||folder.id,name:meta.name||folder.name.replace('.info',''),
+    tags:meta.tags||[],folders:meta.folders||[],annotation:meta.annotation||'',
+    mtime:meta.mtime||(folder.modifiedTime?new Date(folder.modifiedTime).getTime():0),
+    ext:meta.ext||'',width:meta.width||0,height:meta.height||0,
+    previewId:(thumb||img||{}).id||null
   };
 }
 
-async function loadFlatFolder(folderId){
-  // Fallback: treat folder as flat list of images
-  const files = await listFilesNoKey(folderId);
-  const imageFiles = files.filter(f => f.mimeType && f.mimeType.startsWith('image/'));
-  const items = imageFiles.map(f => ({
-    id: f.id,
-    name: f.name.replace(/\.[^.]+$/, ''),
-    tags: [],
-    folders: [],
-    annotation: '',
-    mtime: f.modifiedTime ? new Date(f.modifiedTime).getTime() : 0,
-    ext: f.name.split('.').pop() || '',
-    width: 0, height: 0,
-    previewId: f.id,
+async function loadFlat(folderId,folders){
+  const files=await driveList(folderId);
+  const items=files.filter(f=>f.mimeType&&f.mimeType.startsWith('image/')).map(f=>({
+    id:f.id,name:f.name.replace(/\.[^.]+$/,''),tags:[],folders:[],annotation:'',
+    mtime:f.modifiedTime?new Date(f.modifiedTime).getTime():0,
+    ext:f.name.split('.').pop()||'',width:0,height:0,previewId:f.id
   }));
-  return { items, folders: [] };
+  return{items,folders};
 }
 
-function parseFolderTree(arr, depth=0){
-  return arr.map(f => ({
-    id: f.id,
-    name: f.name,
-    children: parseFolderTree(f.children || [], depth+1),
-    imageCount: 0,
-  }));
+function parseFolders(arr){
+  return arr.map(f=>({id:f.id,name:f.name,children:parseFolders(f.children||[]),imageCount:0}));
 }
 
-// =========================================================
-//  SETUP / RESET
-// =========================================================
+function countFolders(folders,items){
+  folders.forEach(f=>{
+    f.imageCount=items.filter(it=>it.folders.includes(f.id)).length;
+    if(f.children.length) countFolders(f.children,items);
+  });
+}
+
+// ─── SETUP ───────────────────────────────────────────
+function toggleSteps(){
+  const box=document.getElementById('step-box');
+  box.classList.toggle('open');
+}
+
+function showErr(msg){
+  const el=document.getElementById('setup-err');
+  el.textContent=msg;el.style.display='block';
+}
+
 function startViewer(){
-  const raw = document.getElementById('drive-input').value.trim();
-  const id = folderId(raw);
-  if(!id){
-    showSetupError('有効な Google Drive フォルダのリンクを入力してください');
-    return;
-  }
-  localStorage.setItem('eagle_folder_id', id);
-  initViewer(id);
+  const rawFolder=document.getElementById('inp-folder').value.trim();
+  const rawKey=document.getElementById('inp-key').value.trim();
+  const id=extractId(rawFolder);
+  if(!id){showErr('有効な Google Drive フォルダのリンクを入力してください');return;}
+  if(!rawKey||rawKey.length<20){showErr('API キーを入力してください');return;}
+  localStorage.setItem('ev_folder',id);
+  localStorage.setItem('ev_key',rawKey);
+  init(id,rawKey);
 }
 
 function resetViewer(){
-  localStorage.removeItem('eagle_folder_id');
-  document.getElementById('drive-input').value = '';
+  localStorage.removeItem('ev_folder');localStorage.removeItem('ev_key');
+  document.getElementById('inp-folder').value='';
+  document.getElementById('inp-key').value='';
   document.getElementById('app').classList.remove('visible');
   document.getElementById('setup').classList.remove('hidden');
-  S.items = [];
-  S.folders = [];
+  document.getElementById('setup-err').style.display='none';
+  S.items=[];S.folders=[];
 }
 
-function showSetupError(msg){
-  const el = document.getElementById('setup-error');
-  el.textContent = msg;
-  el.style.display = 'block';
-}
-
-// =========================================================
-//  INIT
-// =========================================================
-async function initViewer(rootId){
-  S.rootFolderId = rootId;
+// ─── INIT ─────────────────────────────────────────────
+async function init(folderId,apiKey){
+  S.folderId=folderId;S.apiKey=apiKey;
   document.getElementById('setup').classList.add('hidden');
   document.getElementById('app').classList.add('visible');
-  document.getElementById('loading-state').classList.add('visible');
-  document.getElementById('grid-container').style.display = 'none';
+  document.getElementById('loading').classList.add('on');
+  document.getElementById('grid-wrap').style.display='none';
 
   try{
-    const {items, folders} = await loadLibrary(rootId);
-    S.items = items;
-    S.folders = folders;
-
-    // Count items per folder
-    countFolderItems(S.folders, items);
-
-    // Collect all tags
-    const tagSet = new Set();
-    items.forEach(it => it.tags.forEach(t => tagSet.add(t)));
-    S.allTags = [...tagSet].sort();
-
-    // Update sidebar
-    document.getElementById('total-count').textContent = items.length;
-    renderFolderList(S.folders, document.getElementById('folder-list'));
-    renderTagFilters();
-
-    // Render grid
-    document.getElementById('loading-state').classList.remove('visible');
-    document.getElementById('grid-container').style.display = '';
+    const{items,folders}=await loadLibrary(folderId);
+    S.items=items;S.folders=folders;
+    countFolders(S.folders,S.items);
+    document.getElementById('total-ct').textContent=items.length;
+    renderSidebar();renderTagBar();
+    document.getElementById('loading').classList.remove('on');
+    document.getElementById('grid-wrap').style.display='';
     renderGrid();
   }catch(e){
-    document.getElementById('loading-state').classList.remove('visible');
-    document.getElementById('grid-container').style.display = '';
+    document.getElementById('loading').classList.remove('on');
+    document.getElementById('grid-wrap').style.display='';
     console.error(e);
-    showError(e);
+    document.getElementById('grid').innerHTML=`<div style="grid-column:1/-1;padding:20px 4px;color:#ff6b6b;font-size:12.5px;line-height:1.8">
+      <strong>読み込みエラー</strong><br>${esc(e.message)}<br><br>
+      <span style="color:var(--text3)">・API キーが正しいか確認してください<br>
+      ・Drive API が有効になっているか Google Cloud Console で確認してください<br>
+      ・フォルダの共有設定が「リンクを知っている全員が閲覧可能」か確認してください</span>
+    </div>`;
   }
 }
 
-function showError(e){
-  const g = document.getElementById('grid');
-  g.innerHTML = `<div style="grid-column:1/-1;padding:24px;color:#ff6b6b;font-size:13px;line-height:1.7">
-    <strong>読み込みエラー</strong><br>
-    ${e.message}<br><br>
-    <span style="color:var(--text3)">・フォルダの共有設定が「リンクを知っている全員が閲覧可能」になっているか確認してください<br>
-    ・Eagle ライブラリの <code>images/</code> フォルダが存在するか確認してください</span>
-  </div>`;
+function setLoad(t){document.getElementById('load-txt').textContent=t;}
+
+// ─── SIDEBAR ──────────────────────────────────────────
+function renderSidebar(){
+  const list=document.getElementById('folder-list');
+  list.innerHTML='';
+  S.folders.forEach(f=>renderFI(f,list));
 }
 
-function countFolderItems(folders, items){
-  folders.forEach(f => {
-    f.imageCount = items.filter(it => it.folders.includes(f.id)).length;
-    if(f.children.length) countFolderItems(f.children, items);
-  });
-}
-
-function setLoading(msg){
-  document.getElementById('loading-text').textContent = msg;
-}
-
-// =========================================================
-//  SIDEBAR
-// =========================================================
-function renderFolderList(folders, container, depth=0){
-  container.innerHTML = '';
-  folders.forEach(f => renderFolderItem(f, container, depth));
-}
-
-function renderFolderItem(folder, container, depth){
-  const hasChildren = folder.children && folder.children.length > 0;
-  const el = document.createElement('div');
-  el.innerHTML = `
-    <div class="sidebar-item" data-id="${folder.id}" onclick="handleFolderClick(event,'${folder.id}',${hasChildren})">
-      ${hasChildren ? `<svg class="folder-arrow" width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polyline points="3,2 7,5 3,8"/></svg>` : '<span style="width:10px;flex-shrink:0"></span>'}
-      <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M1.5 5.5V12a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V5.5a1 1 0 0 0-1-1H7.5L6 3H2.5a1 1 0 0 0-1 1v.5z"/>
-      </svg>
-      <span class="sidebar-item-name">${esc(folder.name)}</span>
-      <span class="sidebar-item-count">${folder.imageCount}</span>
+function renderFI(f,container){
+  const hasC=f.children&&f.children.length>0;
+  const wrap=document.createElement('div');
+  wrap.innerHTML=`
+    <div class="sb-item" data-id="${f.id}" onclick="handleFI(event,'${f.id}',${hasC})">
+      ${hasC?`<svg class="sb-arrow" width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polyline points="3,2 7,5 3,8"/></svg>`:'<span style="width:10px;flex-shrink:0"></span>'}
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M1 5V12a1 1 0 001 1h10a1 1 0 001-1V5a1 1 0 00-1-1H7L5.5 2.5H2a1 1 0 00-1 1V5z"/></svg>
+      <span class="sb-item-name">${esc(f.name)}</span>
+      <span class="sb-item-count">${f.imageCount}</span>
     </div>
-    ${hasChildren ? `<div class="folder-children" style="display:none" data-parent="${folder.id}"></div>` : ''}
-  `;
-  container.appendChild(el);
-  if(hasChildren){
-    renderFolderList(folder.children, el.querySelector('.folder-children'), depth+1);
-  }
+    ${hasC?`<div class="folder-children" style="display:none" data-p="${f.id}"></div>`:''}`;
+  container.appendChild(wrap);
+  if(hasC) f.children.forEach(c=>renderFI(c,wrap.querySelector('.folder-children')));
 }
 
-function handleFolderClick(e, folderId, hasChildren){
+function handleFI(e,id,hasC){
   e.stopPropagation();
-  const item = e.currentTarget;
-  if(hasChildren){
-    const children = item.parentElement.querySelector('.folder-children');
-    const open = item.classList.toggle('open');
-    children.style.display = open ? 'block' : 'none';
-  }
-  selectFolder(folderId);
-  closeSidebar();
+  const item=e.currentTarget;
+  if(hasC){const ch=item.parentElement.querySelector('.folder-children');item.classList.toggle('open');ch.style.display=item.classList.contains('open')?'block':'none';}
+  selFolder(id);closeSB();
 }
 
-function selectFolder(id){
-  S.activeFolderId = id;
-  S.activeTag = null;
-  // update active state
-  document.querySelectorAll('.sidebar-item').forEach(el => {
-    el.classList.toggle('active', el.dataset.id === (id||'__all__'));
-  });
-  document.getElementById('all-item').classList.toggle('active', !id);
-  renderTagFilters();
-  renderGrid();
+function selFolder(id){
+  S.active=id;S.tag=null;
+  document.querySelectorAll('.sb-item').forEach(el=>el.classList.toggle('active',el.dataset.id===(id||'__all')));
+  document.getElementById('all-item').classList.toggle('active',!id);
+  renderTagBar();renderGrid();
 }
 
-function toggleSidebar(){
-  document.getElementById('sidebar').classList.add('open');
-  document.getElementById('sidebar-overlay').classList.add('visible');
-}
-function closeSidebar(){
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('sidebar-overlay').classList.remove('visible');
-}
+function openSB(){document.getElementById('sidebar').classList.add('open');document.getElementById('sb-overlay').classList.add('on');}
+function closeSB(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sb-overlay').classList.remove('on');}
 
-// =========================================================
-//  TAG FILTERS
-// =========================================================
-function renderTagFilters(){
-  const bar = document.getElementById('tag-filter-bar');
-  const items = getFilteredItems(false); // without tag filter
-  const tagSet = new Set();
-  items.forEach(it => it.tags.forEach(t => tagSet.add(t)));
-  const tags = [...tagSet].sort();
-  bar.innerHTML = '';
-  tags.forEach(t => {
-    const chip = document.createElement('div');
-    chip.className = 'tag-chip' + (S.activeTag===t?' active':'');
-    chip.textContent = t;
-    chip.onclick = () => toggleTag(t);
-    bar.appendChild(chip);
+// ─── TAGS ──────────────────────────────────────────────
+function renderTagBar(){
+  const bar=document.getElementById('tag-bar');
+  const visible=getItems(false);
+  const tags=[...new Set(visible.flatMap(it=>it.tags))].sort();
+  bar.innerHTML='';
+  tags.forEach(t=>{
+    const c=document.createElement('div');
+    c.className='tag-chip'+(S.tag===t?' active':'');
+    c.textContent=t;c.onclick=()=>{S.tag=S.tag===t?null:t;renderTagBar();renderGrid();};
+    bar.appendChild(c);
   });
 }
 
-function toggleTag(tag){
-  S.activeTag = S.activeTag === tag ? null : tag;
-  document.querySelectorAll('.tag-chip').forEach(c => {
-    c.classList.toggle('active', c.textContent === S.activeTag);
-  });
-  renderGrid();
+// ─── GRID ──────────────────────────────────────────────
+function getItems(withTag=true){
+  let it=S.items;
+  if(S.active) it=it.filter(x=>x.folders.includes(S.active));
+  if(S.q){const q=S.q.toLowerCase();it=it.filter(x=>x.name.toLowerCase().includes(q)||x.tags.some(t=>t.toLowerCase().includes(q))||x.annotation.toLowerCase().includes(q));}
+  if(withTag&&S.tag) it=it.filter(x=>x.tags.includes(S.tag));
+  return it;
 }
 
-// =========================================================
-//  GRID
-// =========================================================
-function getFilteredItems(withTag=true){
-  let items = S.items;
-  if(S.activeFolderId){
-    items = items.filter(it => it.folders.includes(S.activeFolderId));
-  }
-  if(S.searchQuery){
-    const q = S.searchQuery.toLowerCase();
-    items = items.filter(it =>
-      it.name.toLowerCase().includes(q) ||
-      it.tags.some(t => t.toLowerCase().includes(q)) ||
-      it.annotation.toLowerCase().includes(q)
-    );
-  }
-  if(withTag && S.activeTag){
-    items = items.filter(it => it.tags.includes(S.activeTag));
-  }
-  return items;
-}
-
-function sortItems(items){
-  if(S.sortMode === 'date') return [...items].sort((a,b) => b.mtime - a.mtime);
-  return [...items].sort((a,b) => a.name.localeCompare(b.name,'ja'));
+function sorted(items){
+  if(S.sort==='date') return [...items].sort((a,b)=>b.mtime-a.mtime);
+  return [...items].sort((a,b)=>a.name.localeCompare(b.name,'ja'));
 }
 
 function renderGrid(){
-  const items = sortItems(getFilteredItems());
-  const grid = document.getElementById('grid');
-  const empty = document.getElementById('empty-state');
-  const count = document.getElementById('item-count');
-  count.textContent = `${items.length} アイテム`;
-
-  if(items.length === 0){
-    grid.innerHTML = '';
-    empty.classList.add('visible');
-    return;
-  }
-  empty.classList.remove('visible');
-
-  grid.className = S.viewMode === 'list' ? 'list-view' : '';
-  grid.innerHTML = '';
-  const frag = document.createDocumentFragment();
-  items.forEach(item => {
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.onclick = () => openLightbox(item);
-
-    const thumbSrc = item.previewId ? thumbUrl(item.previewId) : '';
-    const tags = item.tags.slice(0,3).map(t => `<span class="card-tag">${esc(t)}</span>`).join('');
-    const dateStr = item.mtime ? new Date(item.mtime).toLocaleDateString('ja-JP',{month:'short',day:'numeric',year:'numeric'}) : '';
-    const metaStr = [item.ext ? item.ext.toUpperCase() : '', item.width&&item.height ? `${item.width}×${item.height}` : ''].filter(Boolean).join('  ');
-
-    if(S.viewMode === 'list'){
-      card.innerHTML = `
-        <img class="card-thumb" src="${thumbSrc}" alt="${esc(item.name)}" loading="lazy" onerror="this.src='';this.classList.add('error')">
-        <div class="card-info">
-          <div class="card-name">${esc(item.name)}</div>
-          <div class="card-meta">${esc(metaStr)}</div>
-        </div>
-        <div class="card-meta" style="flex-shrink:0">${dateStr}</div>
-      `;
+  const items=sorted(getItems());
+  const g=document.getElementById('grid');
+  const em=document.getElementById('empty');
+  document.getElementById('item-count').textContent=`${items.length} アイテム`;
+  if(!items.length){g.innerHTML='';em.classList.add('on');return;}
+  em.classList.remove('on');
+  g.className=S.view==='list'?'list':'';
+  const frag=document.createDocumentFragment();
+  items.forEach(item=>{
+    const card=document.createElement('div');
+    card.className='card';card.onclick=()=>openLB(item);
+    const src=item.previewId?thumbUrl(item.previewId):'';
+    const tags=item.tags.slice(0,3).map(t=>`<span class="card-tag">${esc(t)}</span>`).join('');
+    const meta=[item.ext?item.ext.toUpperCase():'',item.width&&item.height?`${item.width}×${item.height}`:''].filter(Boolean).join('  ');
+    const date=item.mtime?new Date(item.mtime).toLocaleDateString('ja-JP',{year:'numeric',month:'short',day:'numeric'}):'';
+    if(S.view==='list'){
+      card.innerHTML=`<img class="thumb" src="${src}" alt="${esc(item.name)}" loading="lazy" onerror="this.classList.add('err')"><div class="card-body"><div class="card-name">${esc(item.name)}</div><div class="card-meta">${esc(meta)}</div></div><div class="card-meta" style="flex-shrink:0">${date}</div>`;
     } else {
-      card.innerHTML = `
-        <img class="card-thumb" src="${thumbSrc}" alt="${esc(item.name)}" loading="lazy" onerror="this.src='';this.classList.add('error')">
-        <div class="card-info">
-          <div class="card-name">${esc(item.name)}</div>
-          <div class="card-meta">${esc(metaStr)}</div>
-          ${tags ? `<div class="card-tags">${tags}</div>` : ''}
-        </div>
-      `;
+      card.innerHTML=`<img class="thumb" src="${src}" alt="${esc(item.name)}" loading="lazy" onerror="this.classList.add('err')"><div class="card-body"><div class="card-name">${esc(item.name)}</div><div class="card-meta">${esc(meta)}</div>${tags?`<div class="card-tags">${tags}</div>`:''}</div>`;
     }
     frag.appendChild(card);
   });
-  grid.appendChild(frag);
+  g.innerHTML='';g.appendChild(frag);
 }
 
-// =========================================================
-//  LIGHTBOX
-// =========================================================
-function openLightbox(item){
-  const lb = document.getElementById('lightbox');
-  const img = document.getElementById('lightbox-img');
-  const name = document.getElementById('lightbox-name');
-  const tags = document.getElementById('lightbox-tags');
-
-  img.src = item.previewId ? directUrl(item.previewId) : '';
-  name.textContent = item.name;
-  tags.innerHTML = item.tags.map(t =>
-    `<span class="card-tag" style="cursor:pointer" onclick="event.stopPropagation();closeLightbox();setTimeout(()=>filterTag('${esc(t)}'),50)">${esc(t)}</span>`
-  ).join('');
-  lb.classList.add('visible');
+// ─── LIGHTBOX ──────────────────────────────────────────
+function openLB(item){
+  document.getElementById('lb-img').src=item.previewId?directUrl(item.previewId):'';
+  document.getElementById('lb-name').textContent=item.name;
+  document.getElementById('lb-tags').innerHTML=item.tags.map(t=>`<span class="card-tag">${esc(t)}</span>`).join('');
+  document.getElementById('lb').classList.add('on');
 }
+function closeLB(){document.getElementById('lb').classList.remove('on');document.getElementById('lb-img').src='';}
 
-function closeLightbox(){
-  document.getElementById('lightbox').classList.remove('visible');
-  document.getElementById('lightbox-img').src = '';
-}
+// ─── CONTROLS ──────────────────────────────────────────
+function onSearch(v){S.q=v;renderGrid();}
+function setSort(m){S.sort=m;document.getElementById('sn').classList.toggle('active',m==='name');document.getElementById('sd').classList.toggle('active',m==='date');renderGrid();}
+function setView(m){S.view=m;document.getElementById('vg').classList.toggle('active',m==='grid');document.getElementById('vl').classList.toggle('active',m==='list');renderGrid();}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(document.getElementById('lb').classList.contains('on'))closeLB();else closeSB();}});
 
-function filterTag(tag){
-  S.activeTag = tag;
-  renderTagFilters();
-  renderGrid();
-}
-
-// =========================================================
-//  CONTROLS
-// =========================================================
-function onSearch(v){
-  S.searchQuery = v;
-  renderGrid();
-}
-
-function setSort(mode){
-  S.sortMode = mode;
-  document.getElementById('sort-name-btn').classList.toggle('active', mode==='name');
-  document.getElementById('sort-date-btn').classList.toggle('active', mode==='date');
-  renderGrid();
-}
-
-function setView(mode){
-  S.viewMode = mode;
-  document.getElementById('grid-btn').classList.toggle('active', mode==='grid');
-  document.getElementById('list-btn').classList.toggle('active', mode==='list');
-  renderGrid();
-}
-
-// =========================================================
-//  UTILS
-// =========================================================
-function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') }
-
-// keyboard
-document.addEventListener('keydown', e => {
-  if(e.key === 'Escape'){
-    if(document.getElementById('lightbox').classList.contains('visible')) closeLightbox();
-    else closeSidebar();
-  }
-});
-
-// startup: restore saved folder
-window.addEventListener('load', () => {
-  const saved = localStorage.getItem('eagle_folder_id');
-  if(saved){
-    document.getElementById('drive-input').value = `https://drive.google.com/drive/folders/${saved}`;
-    initViewer(saved);
-  }
+// ─── RESTORE ──────────────────────────────────────────
+window.addEventListener('load',()=>{
+  const id=localStorage.getItem('ev_folder');
+  const key=localStorage.getItem('ev_key');
+  if(id&&key){document.getElementById('inp-folder').value=`https://drive.google.com/drive/folders/${id}`;document.getElementById('inp-key').value=key;init(id,key);}
 });
 </script>
 </body>
