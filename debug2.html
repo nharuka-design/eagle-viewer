@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Debug2</title>
+<style>
+body{background:#111;color:#ccc;font-family:monospace;padding:20px;font-size:12px}
+input{width:100%;background:#222;border:1px solid #444;border-radius:5px;padding:7px 10px;color:#eee;font-size:12px;margin-bottom:6px;box-sizing:border-box}
+button{background:#4f9cf9;color:#fff;border:none;border-radius:5px;padding:7px 16px;font-size:12px;cursor:pointer;margin:4px 4px 4px 0}
+pre{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:5px;padding:10px;overflow:auto;white-space:pre-wrap;word-break:break-all;max-height:300px;font-size:11px;margin:8px 0}
+.ok{color:#4ade80}.er{color:#f87171}.warn{color:#fbbf24}
+h3{color:#4f9cf9;margin:14px 0 6px;font-size:13px}
+</style>
+</head>
+<body>
+<h3>🔬 Drive アクセス方法テスト</h3>
+<input id="k" placeholder="API キー (AIzaSy...)">
+<input id="fid" placeholder="metadata.json の ファイルID (1uMvsLR102cbVjqv57xJY9ngGiHjZl01l)">
+<input id="infoid" placeholder=".info フォルダID (1tJekYhaBc79jyCLhD4Peim1QDnFcAr6K)">
+<button onclick="testAll()">全テスト実行</button>
+<div id="out"></div>
+<script>
+let out='';
+function log(msg,cls=''){out+=`<div class="${cls}">${msg}</div>`;document.getElementById('out').innerHTML=out;}
+function clearOut(){out='';document.getElementById('out').innerHTML='';}
+
+async function testAll(){
+  clearOut();
+  const key=document.getElementById('k').value.trim();
+  const metaId=document.getElementById('fid').value.trim()||'1uMvsLR102cbVjqv57xJY9ngGiHjZl01l';
+  const infoId=document.getElementById('infoid').value.trim()||'1tJekYhaBc79jyCLhD4Peim1QDnFcAr6K';
+
+  // ── Test A: alt=media ──
+  log('<h3>Test A: alt=media (Drive API)</h3>');
+  try{
+    const r=await fetch(`https://www.googleapis.com/drive/v3/files/${metaId}?alt=media&key=${key}`);
+    log(`status: ${r.status} ${r.statusText}`);
+    if(r.ok){const t=await r.text();log('✅ 成功！ 最初の200文字: <pre>'+t.slice(0,200)+'</pre>','ok');}
+    else{const t=await r.text();log('❌ 失敗: '+t.slice(0,200),'er');}
+  }catch(e){log('❌ CORS/ネットワークエラー: '+e.message,'er');}
+
+  // ── Test B: export=download ──
+  log('<h3>Test B: uc?export=download</h3>');
+  try{
+    const r=await fetch(`https://drive.google.com/uc?export=download&id=${metaId}&confirm=1`);
+    log(`status: ${r.status} ${r.statusText}`);
+    if(r.ok){const t=await r.text();log('✅ 成功！ 最初の200文字: <pre>'+t.slice(0,200)+'</pre>','ok');}
+    else{const t=await r.text();log('❌ 失敗: '+t.slice(0,200),'er');}
+  }catch(e){log('❌ CORS/ネットワークエラー: '+e.message,'er');}
+
+  // ── Test C: thumbnail URL ──
+  log('<h3>Test C: thumbnail URL でサムネイル表示</h3>');
+  // .info フォルダ内のサムネイルIDをまず取得
+  try{
+    const r=await fetch(`https://www.googleapis.com/drive/v3/files?q='${infoId}'+in+parents+and+trashed%3Dfalse&fields=files(id,name,mimeType)&key=${key}`);
+    const d=await r.json();
+    log(`infoフォルダ内ファイル: ${(d.files||[]).map(f=>f.name).join(', ')}`);
+    const thumb=(d.files||[]).find(f=>f.name.startsWith('thumbnail'));
+    if(thumb){
+      const turl=`https://drive.google.com/thumbnail?id=${thumb.id}&sz=w200`;
+      log(`サムネイルURL: ${turl}`);
+      log(`<img src="${turl}" style="max-width:200px;border:1px solid #333;border-radius:4px" onerror="this.nextSibling.style.display='block'" onload="this.nextSibling.style.display='none'"><span class="er"> ❌ 画像読み込み失敗</span>`);
+      // alt=media でサムネイル取得テスト
+      log('<br>サムネイルを alt=media で取得テスト:');
+      const r2=await fetch(`https://www.googleapis.com/drive/v3/files/${thumb.id}?alt=media&key=${key}`);
+      log(`status: ${r2.status}`);
+      if(r2.ok){
+        const blob=await r2.blob();
+        const url=URL.createObjectURL(blob);
+        log(`✅ alt=media 成功 (${blob.size}bytes, ${blob.type})`,'ok');
+        log(`<img src="${url}" style="max-width:200px;border:1px solid #444;border-radius:4px">`);
+      } else { log('❌ alt=media 失敗','er'); }
+    } else { log('⚠️ thumbnailファイルが見つかりません','warn'); }
+  }catch(e){log('❌ '+e.message,'er');}
+
+  // ── Test D: files.get で webContentLink 取得 ──
+  log('<h3>Test D: files.get webContentLink</h3>');
+  try{
+    const r=await fetch(`https://www.googleapis.com/drive/v3/files/${metaId}?fields=webContentLink,webViewLink&key=${key}`);
+    const d=await r.json();
+    log('webContentLink: '+(d.webContentLink||'なし'));
+    log('webViewLink: '+(d.webViewLink||'なし'));
+    if(d.webContentLink){
+      const r2=await fetch(d.webContentLink);
+      log(`webContentLink fetch status: ${r2.status}`);
+      if(r2.ok){const t=await r2.text();log('✅ 成功: <pre>'+t.slice(0,200)+'</pre>','ok');}
+    }
+  }catch(e){log('❌ '+e.message,'er');}
+
+  // ── Test E: .info フォルダ内のmetadata.json を alt=media ──
+  log('<h3>Test E: .info/metadata.json を alt=media で取得</h3>');
+  try{
+    const r=await fetch(`https://www.googleapis.com/drive/v3/files?q='${infoId}'+in+parents+and+name%3D'metadata.json'&fields=files(id,name)&key=${key}`);
+    const d=await r.json();
+    const mf=(d.files||[])[0];
+    if(mf){
+      log(`metadata.json ID: ${mf.id}`);
+      const r2=await fetch(`https://www.googleapis.com/drive/v3/files/${mf.id}?alt=media&key=${key}`);
+      log(`status: ${r2.status}`);
+      if(r2.ok){const t=await r2.text();log('✅ 成功: <pre>'+t.slice(0,400)+'</pre>','ok');}
+      else{const t=await r2.text();log('❌ 失敗: '+t.slice(0,200),'er');}
+    }
+  }catch(e){log('❌ '+e.message,'er');}
+
+  log('<h3 class="ok">✅ テスト完了</h3>');
+}
+</script>
+</body>
+</html>
