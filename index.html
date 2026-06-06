@@ -307,18 +307,22 @@ async function loadLibrary(rootId){
   setLoad('フォルダ構造を確認中…');
   const rootFiles=await driveList(rootId);
 
-  // Detect structure
+  console.log('=== ROOT FILES ===', rootFiles.length+'件');
+  rootFiles.forEach(f=>console.log((f.mimeType==='application/vnd.google-apps.folder'?'[DIR] ':'[FILE]')+f.name+'  id='+f.id));
+
   let imagesId=null, metaFileId=null;
   for(const f of rootFiles){
     if(f.mimeType==='application/vnd.google-apps.folder'&&f.name.toLowerCase()==='images') imagesId=f.id;
     if(f.name==='metadata.json'&&f.mimeType!=='application/vnd.google-apps.folder') metaFileId=f.id;
   }
 
-  // Maybe user pointed to parent of .library folder
   if(!imagesId){
     const libFolders=rootFiles.filter(f=>f.mimeType==='application/vnd.google-apps.folder'&&f.name.endsWith('.library'));
+    console.log('.library候補:', libFolders.map(f=>f.name).join(', ')||'なし');
     if(libFolders.length){
       const sub=await driveList(libFolders[0].id);
+      console.log('=== .library内部 ===', sub.length+'件');
+      sub.forEach(f=>console.log((f.mimeType==='application/vnd.google-apps.folder'?'[DIR] ':'[FILE]')+f.name));
       for(const f of sub){
         if(f.mimeType==='application/vnd.google-apps.folder'&&f.name.toLowerCase()==='images') imagesId=f.id;
         if(f.name==='metadata.json') metaFileId=f.id;
@@ -326,34 +330,47 @@ async function loadLibrary(rootId){
     }
   }
 
-  // Load folder tree from metadata.json
+  console.log('imagesId='+imagesId+' metaFileId='+metaFileId);
+
   let folders=[];
   if(metaFileId){
     try{
       const r=await fetch(mediaUrl(metaFileId));
-      if(r.ok){const meta=await r.json();folders=parseFolders(meta.folders||[]);}
-    }catch(e){}
+      console.log('metadata.json status='+r.status);
+      if(r.ok){
+        const meta=await r.json();
+        console.log('metadata keys:'+Object.keys(meta).join(','));
+        console.log('metadata.folders:'+(meta.folders||[]).length+'件');
+        folders=parseFolders(meta.folders||[]);
+      }
+    }catch(e){console.warn('metadata.json失敗:',e);}
   }
 
   if(!imagesId){
-    // Flat folder fallback
-    setLoad('画像ファイルを取得中…');
-    return await loadFlat(rootId,folders);
+    const names=rootFiles.map(f=>(f.mimeType==='application/vnd.google-apps.folder'?'📁 ':'📄 ')+f.name).join('<br>');
+    throw new Error('imagesフォルダが見つかりません。ルートの内容('+rootFiles.length+'件):<br>'+names+'<br><br>→ Eagle の .library フォルダを直接共有してください。');
   }
 
-  // Eagle format: list .info subfolders
   setLoad('アイテム一覧を取得中…');
-  const infoFolders=await driveList(imagesId,'mimeType=\'application/vnd.google-apps.folder\'');
+  const infoFolders=await driveList(imagesId,"mimeType='application/vnd.google-apps.folder'");
+  console.log('.infoフォルダ数:'+infoFolders.length);
+
+  if(infoFolders.length===0){
+    const allInImages=await driveList(imagesId);
+    const names2=allInImages.slice(0,15).map(f=>f.name).join('<br>');
+    throw new Error('images内に.infoフォルダが0件です。images内容('+allInImages.length+'件):<br>'+names2);
+  }
+
   const items=[];
   const BATCH=15;
   for(let i=0;i<infoFolders.length;i+=BATCH){
-    setLoad(`アイテム読み込み中 ${Math.min(i+BATCH,infoFolders.length)} / ${infoFolders.length}`);
+    setLoad('アイテム読み込み中 '+Math.min(i+BATCH,infoFolders.length)+' / '+infoFolders.length);
     const res=await Promise.allSettled(infoFolders.slice(i,i+BATCH).map(loadInfo));
     for(const r of res) if(r.status==='fulfilled'&&r.value) items.push(r.value);
   }
+  console.log('完了 items:'+items.length+'件');
   return {items,folders};
 }
-
 async function loadInfo(folder){
   const files=await driveList(folder.id);
   const metaFile=files.find(f=>f.name==='metadata.json');
