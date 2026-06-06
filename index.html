@@ -308,127 +308,191 @@ function dUrl(fileId){
 }
 
 // ═══════════════════════════════════════════════
-//  LIBRARY LOADER  ← ここが核心。APIコール最小化
+//  LIBRARY LOADER  — 高速2段階ロード
+//  Phase1: metadata.json 1ファイル読むだけで即表示
+//  Phase2: images/ を1回のAPIコールでサムネイルID解決
 // ═══════════════════════════════════════════════
+
 async function loadLibrary(rootId){
   setL('ライブラリ構造を確認中…');
 
-  // ① ルートフォルダ内を1回だけ一覧取得
+  // Step1: ルート直下を1回取得
   const rootFiles = await dList(rootId);
-  let libRootFiles = rootFiles;
+  let libRoot = rootFiles;
 
-  // ② .libraryフォルダを探す（ユーザーが親フォルダを指定した場合）
+  // .library フォルダが子にある場合（親フォルダを指定したケース）
   const libDir = rootFiles.find(f=>
     f.mimeType==='application/vnd.google-apps.folder' && f.name.endsWith('.library')
   );
-  if(libDir){
-    libRootFiles = await dList(libDir.id);
-  }
+  if(libDir) libRoot = await dList(libDir.id);
 
-  // ③ metadata.json（ライブラリ本体情報）を見つける
-  const metaFile = libRootFiles.find(f=>f.name==='metadata.json' && f.mimeType!=='application/vnd.google-apps.folder');
-  // ④ images フォルダを見つける
-  const imagesDir = libRootFiles.find(f=>
-    f.mimeType==='application/vnd.google-apps.folder' && f.name.toLowerCase()==='images'
-  );
+  const metaFile  = libRoot.find(f=> f.name==='metadata.json' && !f.mimeType.includes('folder'));
+  const imagesDir = libRoot.find(f=> f.mimeType==='application/vnd.google-apps.folder' && f.name.toLowerCase()==='images');
 
   if(!metaFile && !imagesDir){
-    const names = libRootFiles.map(f=>(f.mimeType.includes('folder')?'📁 ':'📄 ')+f.name).join('<br>');
-    throw new Error(`Eagle ライブラリの構造が見つかりません。<br>フォルダの内容(${libRootFiles.length}件):<br>${names}<br><br>Eagle の .library フォルダを直接共有してください。`);
+    const names = libRoot.map(f=>(f.mimeType.includes('folder')?'📁 ':'📄 ')+f.name).join('<br>');
+    throw new Error('Eagle ライブラリが見つかりません。<br>内容('+libRoot.length+'件):<br>'+names+'<br><br>→ .library フォルダを直接共有してください。');
   }
 
-  // ⑤ metadata.json を読む（フォルダツリー＋全アイテム情報が入っている）
-  setL('ライブラリ情報を読み込み中…');
+  // ── Phase 1: metadata.json だけ読んでアイテムを即座に表示 ──
+  setL('メタデータを読み込み中…');
   let libMeta = {};
   if(metaFile){
-    try{ libMeta = await dRead(metaFile.id); }catch(e){ console.warn('metadata読み取り失敗',e); }
+    try{ libMeta = await dRead(metaFile.id); }
+    catch(e){ console.warn('metadata.json読み取り失敗', e); }
   }
 
-  const folders = parseFolders(libMeta.folders||[]);
-
-  // ⑥ Eagle の metadata.json には items 配列が入っていることがある（新しいバージョン）
-  //   入っていない場合は images/ 以下の各 .info/metadata.json を読む
+  const folders = parseFolders(libMeta.folders || []);
   let items = [];
 
   if(libMeta.items && libMeta.items.length > 0){
-    // ✅ 最速パス：metadata.json に全アイテムが含まれている
-    setL(`${libMeta.items.length} 件のアイテムを処理中…`);
+    // metadata.json にアイテムリストが含まれるバージョン（最速）
     items = libMeta.items.map(parseItem);
   } else if(imagesDir){
-    // ⑦ images/ 以下の .info フォルダ一覧を取得（APIコール1回）
+    // .info フォルダ名 = アイテムID なので、フォルダ一覧だけで名前が分かる
+    // ただし metadata.json の中身がないので名前等は不明 → 後で非同期補完
     setL('アイテム一覧を取得中…');
     const infoFolders = await dList(imagesDir.id, 'application/vnd.google-apps.folder');
-
-    if(infoFolders.length===0){
-      throw new Error('images フォルダ内に .info フォルダが見つかりません。Eagle でライブラリを一度開いてサムネイルを生成してください。');
+    if(infoFolders.length === 0){
+      throw new Error('images フォルダに .info フォルダが見つかりません。');
     }
+    // まずフォルダ名（=アイテムID）だけでアイテムを仮生成 → 即グリッド表示
+    items = infoFolders.map(f=>({
+      id: f.name.replace(/\.info$/,''),
+      name: f.name.replace(/\.info$/,''),  // 仮の名前（後で上書き）
+      tags:[], folders:[], annotation:'',
+      mtime: f.modifiedTime ? new Date(f.modifiedTime).getTime() : 0,
+      ext:'', width:0, height:0,
+      _thumbId: null, _srcId: null,
+      _infoFolderId: f.id,  // Phase2で使う
+      _loaded: false,
+    }));
 
-    // ⑧ 各 .info フォルダの中身を並列取得（バッチ処理）
-    // ※ ここが件数×2回のAPIコールになるが、並列化で高速化
-    const BATCH = 20;
-    for(let i=0; i<infoFolders.length; i+=BATCH){
-      setL(`アイテム読み込み中… ${Math.min(i+BATCH,infoFolders.length)} / ${infoFolders.length}`);
-      const batch = infoFolders.slice(i,i+BATCH);
-      const results = await Promise.allSettled(batch.map(loadInfoFolder));
-      for(const r of results){
-        if(r.status==='fulfilled' && r.value) items.push(r.value);
-      }
-    }
+    // Phase1完了 → 即グリッド表示してからバックグラウンドでメタ取得
+    return {items, folders, imagesDir, pendingInfoFolders: infoFolders};
   }
 
-  return {items, folders};
+  // imagesDir の thumbnails を一括取得（Phase2）
+  return {items, folders, imagesDir, pendingInfoFolders: null};
 }
 
-async function loadInfoFolder(folder){
-  // .info フォルダの中身を取得（metadata.json + thumbnail.png）
-  const files = await dList(folder.id);
-  const metaFile = files.find(f=>f.name==='metadata.json');
-  if(!metaFile) return null;
+// Phase2: サムネイルIDを images/ 以下の全ファイル一覧から一括解決
+// Drive API 1回で全サムネイルのIDが取れる（ファイルはフラットに検索できる）
+async function resolveThumbsFast(imagesDir, items){
+  if(!imagesDir) return;
+  setL('サムネイルを取得中…');
 
-  let meta = {};
-  try{ meta = await dRead(metaFile.id); }catch(e){ return null; }
+  // images/ 直下の全ファイルを検索（thumbnail.png を名前フィルタで）
+  // ※ Drive APIの q で name contains は遅いので、全ファイルを取得してJS側でマップ
+  // images/ 内は .info フォルダの中にあるので、再帰的に取れない
+  // → 代わりに各アイテムのIDからサムネURL を直接組み立てる
+  // Eagle の thumbnail.png は .info フォルダ内にあるが、
+  // Drive の thumbnail API は ファイルIDがあれば使える
+  // → .info フォルダIDは items._infoFolderId に入っている
+  // → そこから thumbnail.png を検索するのに dList を使うと件数分のAPIコールになる
+  //
+  // ★ 代替策: Drive の files.list で imagesDir 内の thumbnail.png を一括検索
+  //   q = '{imagesDir.id}' in ancestors and name='thumbnail.png'
+  //   → ancestors で再帰検索できる！これで1回のAPIコールで全サムネイルIDが取れる
 
-  // サムネイルファイルのIDをキャッシュしておく
-  const thumbFile = files.find(f=>f.name==='thumbnail.png'||f.name==='thumbnail.jpg');
-  const srcFile = files.find(f=>{
-    const ext=(f.name.split('.').pop()||'').toLowerCase();
-    return (IMAGE_EXT.has(ext)||VIDEO_EXT.has(ext)) && f.name!=='metadata.json';
-  });
+  try{
+    let pageToken = null;
+    const thumbMap = {}; // infoFolderId → thumbnailFileId
 
-  const item = parseItem(meta);
-  // thumbnail.png の Drive ID があればサムネイルURLに使う
-  if(thumbFile) item._thumbId = thumbFile.id;
-  if(srcFile)   item._srcId  = srcFile.id;
-  return item;
+    do {
+      const q = `'${imagesDir.id}' in ancestors and name='thumbnail.png' and trashed=false`;
+      const p = new URLSearchParams({
+        q,
+        fields: 'nextPageToken,files(id,name,parents)',
+        pageSize: '1000',
+        key: S.apiKey,
+      });
+      if(pageToken) p.set('pageToken', pageToken);
+      const r = await fetch(`${DAPI}/files?${p}`);
+      if(!r.ok) break;
+      const data = await r.json();
+      for(const f of (data.files||[])){
+        if(f.parents && f.parents[0]) thumbMap[f.parents[0]] = f.id;
+      }
+      pageToken = data.nextPageToken || null;
+    } while(pageToken);
+
+    // アイテムにサムネイルIDをセット
+    let resolved = 0;
+    for(const item of items){
+      if(item._infoFolderId && thumbMap[item._infoFolderId]){
+        item._thumbId = thumbMap[item._infoFolderId];
+        resolved++;
+      }
+    }
+    console.log(`サムネイル解決: ${resolved}/${items.length}件`);
+  } catch(e){
+    console.warn('サムネイル一括取得失敗:', e);
+  }
+}
+
+// Phase2b: .info/metadata.json を一括読み込み（名前・タグ等の補完）
+async function resolveMetaAsync(items, onProgress){
+  const pending = items.filter(it => it._infoFolderId && !it._loaded);
+  if(!pending.length) return;
+
+  const BATCH = 30; // 並列数を増やす
+  for(let i=0; i<pending.length; i+=BATCH){
+    const batch = pending.slice(i, i+BATCH);
+    await Promise.allSettled(batch.map(async item => {
+      try{
+        const files = await dList(item._infoFolderId);
+        const mf = files.find(f=>f.name==='metadata.json');
+        const tf = files.find(f=>f.name==='thumbnail.png'||f.name==='thumbnail.jpg');
+        const sf = files.find(f=>{
+          const ext=(f.name.split('.').pop()||'').toLowerCase();
+          return (IMAGE_EXT.has(ext)||VIDEO_EXT.has(ext)) && f.name!=='metadata.json' && f.name!=='thumbnail.png';
+        });
+        if(tf && !item._thumbId) item._thumbId = tf.id;
+        if(sf) item._srcId = sf.id;
+        if(mf){
+          const meta = await dRead(mf.id);
+          item.name       = meta.name       || item.name;
+          item.tags       = meta.tags       || [];
+          item.folders    = meta.folders    || [];
+          item.annotation = meta.annotation || '';
+          item.mtime      = meta.mtime      || item.mtime;
+          item.ext        = (meta.ext||'').toLowerCase();
+          item.width      = meta.width      || 0;
+          item.height     = meta.height     || 0;
+        }
+        item._loaded = true;
+      }catch(e){}
+    }));
+    if(onProgress) onProgress(Math.min(i+BATCH, pending.length), pending.length);
+  }
 }
 
 function parseItem(meta){
   return {
-    id:         meta.id      || '',
-    name:       meta.name    || '(無題)',
-    tags:       meta.tags    || [],
-    folders:    meta.folders || [],
+    id:         meta.id         || '',
+    name:       meta.name       || '(無題)',
+    tags:       meta.tags       || [],
+    folders:    meta.folders    || [],
     annotation: meta.annotation || '',
-    mtime:      meta.mtime   || 0,
-    ext:        (meta.ext    || '').toLowerCase(),
-    width:      meta.width   || 0,
-    height:     meta.height  || 0,
-    _thumbId:   null,   // loadInfoFolder で設定
+    mtime:      meta.mtime      || 0,
+    ext:        (meta.ext       || '').toLowerCase(),
+    width:      meta.width      || 0,
+    height:     meta.height     || 0,
+    _thumbId:   null,
     _srcId:     null,
+    _infoFolderId: null,
+    _loaded:    true,
   };
 }
 
 function parseFolders(arr){
-  return arr.map(f=>({
-    id:f.id, name:f.name,
-    children:parseFolders(f.children||[]),
-    imageCount:0
-  }));
+  return arr.map(f=>({id:f.id, name:f.name, children:parseFolders(f.children||[]), imageCount:0}));
 }
 
 function countFolders(folders,items){
   folders.forEach(f=>{
-    f.imageCount = items.filter(it=>it.folders.includes(f.id)).length;
+    f.imageCount=items.filter(it=>it.folders.includes(f.id)).length;
     if(f.children.length) countFolders(f.children,items);
   });
 }
@@ -485,14 +549,37 @@ async function init(folderId,apiKey){
   document.getElementById('gw').style.display='none';
 
   try{
-    const {items,folders} = await loadLibrary(folderId);
-    S.items=items; S.folders=folders;
-    countFolders(S.folders,S.items);
-    document.getElementById('total-ct').textContent=items.length;
+    // ── Phase 1: metadata.json だけ読んで即表示 ──
+    const result = await loadLibrary(folderId);
+    S.items   = result.items;
+    S.folders = result.folders;
+    countFolders(S.folders, S.items);
+    document.getElementById('total-ct').textContent = S.items.length;
     renderSB(); renderTagBar();
     document.getElementById('loading').classList.remove('on');
     document.getElementById('gw').style.display='';
-    renderGrid();
+    renderGrid();  // ← ここで即座に表示（サムネなしでもOK）
+
+    // ── Phase 2: サムネイルIDをバックグラウンドで解決 ──
+    if(result.imagesDir){
+      // 2a: ancestors クエリで全サムネイルを1回のAPIコールで取得
+      await resolveThumbsFast(result.imagesDir, S.items);
+      renderGrid(); // サムネ付きで再描画
+
+      // 2b: pendingInfoFolders がある場合（metadata.jsonにitemsがなかった場合）
+      //     名前・タグ等をバックグラウンドで補完
+      if(result.pendingInfoFolders){
+        resolveMetaAsync(S.items, (done, total)=>{
+          setL(`メタデータ補完中… ${done}/${total}`);
+          renderGrid();   // 少しずつ名前・タグが埋まっていく
+          if(done>=total){
+            setL('');
+            countFolders(S.folders, S.items);
+            renderSB(); renderTagBar(); renderGrid();
+          }
+        });
+      }
+    }
   }catch(e){
     console.error(e);
     document.getElementById('loading').classList.remove('on');
